@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çay Sipariş Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #219653;
+        }
+
+        .info-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Çay Sipariş Sistemi</h1>
+        
+        <form id="teaOrderForm">
+            <div class="form-group">
+                <label for="teaCount">Çay Adedi</label>
+                <input type="number" id="teaCount" min="1" max="50" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="specialNote">Odanızın İsmini Yazınız</label>
+                <textarea id="specialNote" placeholder="Örneğin sosyal servis , yazı işleri..."></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">Siparişi Gönder</button>
+        </form>
+        
+        
+        
+        <div id="successMessage" class="success-message">
+            Siparişiniz başarıyla gönderildi!
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            Bir hata oluştu. Lütfen tekrar deneyin.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('teaOrderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Form verilerini al
+            const teaCount = document.getElementById('teaCount').value;
+            const specialNote = document.getElementById('specialNote').value;
+            
+            // Tarih ve saat bilgilerini al
+            const now = new Date();
+            const dateTime = now.toLocaleString('tr-TR');
+            
+            // WhatsApp mesajını oluştur
+            let message = `Çay Siparişi\n`;
+            message += `Tarih: ${dateTime}\n`;
+            message += `Çay Adedi: ${teaCount}\n`;
+            
+            if (specialNote.trim() !== '') {
+                message += `Oda: ${specialNote}\n`;
+            }
+            
+            // WhatsApp URL'sini oluştur
+            const phoneNumber = '905375973488'; // WhatsApp formatında numara
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+            
+            // WhatsApp'ı yeni pencerede aç
+            window.open(whatsappURL, '_blank');
+            
+            // Başarı mesajını göster
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Formu sıfırla
+            document.getElementById('teaOrderForm').reset();
+            document.getElementById('teaCount').value = 1;
+            
+            // 3 saniye sonra başarı mesajını gizle
+            setTimeout(function() {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
