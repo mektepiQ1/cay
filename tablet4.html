@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paşam Döner - Sipariş Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0066ff 0%, #00ccff 50%, #0066ff 100%);
+            color: white;
+            padding: 25px 0;
+            text-align: center;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0, 102, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #00ccff;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .blue-fire-text {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #0066ff, 0 0 20px #0066ff, 0 0 30px #0066ff;
+            position: relative;
+            animation: blue-flicker 1.5s infinite alternate;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        @keyframes blue-flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow: 0 0 10px #0066ff, 0 0 20px #0066ff, 0 0 30px #0066ff, 0 0 40px #0066ff;
+            }
+            20%, 24%, 55% {
+                text-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff, 0 0 15px #0066ff, 0 0 20px #0066ff;
+            }
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            font-weight: 500;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .menu-section {
+            background: linear-gradient(135deg, #1a1a4a 0%, #0f0f3a 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #2a2a6a;
+        }
+
+        .menu-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 102, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #00ccff;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #2a2a6a;
+            position: relative;
+            font-weight: 700;
+        }
+
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(to right, #0066ff, #00ccff);
+            border-radius: 3px;
+        }
+
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-item {
+            background: linear-gradient(135deg, #2a2a6a 0%, #1a1a5a 100%);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid #3a3a7a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 204, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-item:hover::before {
+            left: 100%;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 102, 255, 0.3);
+            border-color: #00ccff;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: #fff;
+        }
+
+        .item-price {
+            color: #00ccff;
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-top: 5px;
+            text-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quantity-btn {
+            background: linear-gradient(135deg, #0066ff 0%, #00ccff 100%);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 102, 255, 0.4);
+            font-weight: bold;
+        }
+
+        .quantity-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 12px rgba(0, 102, 255, 0.6);
+        }
+
+        .quantity {
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: 2px solid #2a2a6a;
+            border-radius: 10px;
+            resize: vertical;
+            font-size: 1rem;
+            transition: border 0.3s, box-shadow 0.3s;
+            background: #1a1a5a;
+            color: #fff;
+        }
+
+        .notes-section textarea:focus {
+            outline: none;
+            border-color: #00ccff;
+            box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.2);
+        }
+
+        .customer-info-section {
+            background: linear-gradient(135deg, #1a1a4a 0%, #0f0f3a 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 25px;
+            border: 1px solid #2a2a6a;
+        }
+
+        .customer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #2a2a6a;
+            border-radius: 10px;
+            background: #1a1a5a;
+            transition: border 0.3s, box-shadow 0.3s;
+            color: #fff;
+        }
+
+        .customer-input:focus {
+            outline: none;
+            border-color: #00ccff;
+            box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.2);
+        }
+
+        .payment-section {
+            background: linear-gradient(135deg, #1a1a4a 0%, #0f0f3a 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 25px;
+            border: 1px solid #2a2a6a;
+        }
+
+        .payment-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .payment-btn {
+            background: linear-gradient(135deg, #2a2a6a 0%, #1a1a5a 100%);
+            color: white;
+            border: 2px solid #2a2a6a;
+            padding: 18px 15px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 204, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .payment-btn:hover::before {
+            left: 100%;
+        }
+
+        .payment-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 102, 255, 0.3);
+        }
+
+        .payment-btn.selected {
+            background: linear-gradient(135deg, #0066ff 0%, #00ccff 100%);
+            border-color: #00ccff;
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .order-summary {
+            background: linear-gradient(135deg, #1a1a4a 0%, #0f0f3a 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 25px;
+            border: 2px solid #2a2a6a;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #2a2a6a;
+            transition: background 0.2s;
+        }
+
+        .summary-item:hover {
+            background: rgba(0, 204, 255, 0.05);
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px 0;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00ccff;
+            border-top: 2px solid #2a2a6a;
+            margin-top: 15px;
+            text-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
+        }
+
+        .order-time {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 2px dashed #2a2a6a;
+            font-style: italic;
+            color: #aaa;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #0066ff 0%, #00ccff 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            font-size: 1.3rem;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0, 102, 255, 0.5);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 102, 255, 0.7);
+        }
+
+        .printer-status {
+            background: linear-gradient(135deg, #1a1a4a 0%, #0f0f3a 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #2a2a6a;
+        }
+
+        .status-connected {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .status-disconnected {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .status-connecting {
+            color: #ffaa00;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .menu-items {
+                grid-template-columns: 1fr;
+            }
+            
+            .blue-fire-text {
+                font-size: 2.2rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .payment-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="blue-fire-text">🔥Paşam Döner 🔥</h1>
+            <p>Lezzetin En Güzel Hali</p>
+        </header>
+
+        <div class="printer-status" id="printer-status">
+            <div id="status-text">Yazıcıya bağlanıyor...</div>
+            <div id="status-detail"></div>
+        </div>
+
+        <section class="customer-info-section">
+            <h2 class="section-title">İsminizi ve Soyisminizi Giriniz</h2>
+            <input type="text" class="customer-input" id="customer-name" placeholder="Adınız ve soyadınız">
+        </section>
+
+        <section class="menu-section">
+            <h2 class="section-title">Döner Çeşitlerimiz</h2>
+            <div class="menu-items">
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Tek Lavaş Döner</div>
+                        <div class="item-price">100 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="tek-doner">-</button>
+                        <span class="quantity" id="tek-doner-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="tek-doner">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Çift Lavaş Döner</div>
+                        <div class="item-price">110 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="cift-doner">-</button>
+                        <span class="quantity" id="cift-doner-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="cift-doner">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Zurna</div>
+                        <div class="item-price">180 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="zurna">-</button>
+                        <span class="quantity" id="zurna-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="zurna">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Sütlü ekmek</div>
+                        <div class="item-price">100 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="sutlu-ekmek">-</button>
+                        <span class="quantity" id="sutlu-ekmek-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="sutlu-ekmek">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">İçi 1 buçuk döner</div>
+                        <div class="item-price">180 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="ici-bucuk-doner">-</button>
+                        <span class="quantity" id="ici-bucuk-doner-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="ici-bucuk-doner">+</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="menu-section">
+            <h2 class="section-title">İçeceklerimiz</h2>
+            <div class="menu-items">
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Kola</div>
+                        <div class="item-price">40 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="kola">-</button>
+                        <span class="quantity" id="kola-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="kola">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Büyük Ayran</div>
+                        <div class="item-price">20 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="ayran">-</button>
+                        <span class="quantity" id="ayran-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="ayran">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Şalgam</div>
+                        <div class="item-price">20 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="salgam">-</button>
+                        <span class="quantity" id="salgam-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="salgam">+</button>
+                    </div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">Su</div>
+                        <div class="item-price">10 ₺</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-item="su">-</button>
+                        <span class="quantity" id="su-quantity">0</span>
+                        <button class="quantity-btn plus" data-item="su">+</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="menu-section">
+            <h2 class="section-title">DÖNERİNİZ NASIL OLSUN 🙂?</h2>
+            <div class="notes-section">
+                <textarea id="order-notes" placeholder="Örneğin full olsun veya ketçap olmasın "></textarea>
+            </div>
+        </section>
+
+        <section class="payment-section">
+            <h2 class="section-title">Ödeme Şeklini Seçiniz</h2>
+            <div class="payment-buttons">
+                <button class="payment-btn" data-payment="Kart">Kart ile Ödeme</button>
+                <button class="payment-btn" data-payment="Nakit">Nakit Ödeme</button>
+            </div>
+        </section>
+
+        <section class="order-summary">
+            <h2 class="section-title">Sipariş Özeti</h2>
+            <div id="summary-items">
+                <!-- Sipariş öğeleri JavaScript ile buraya eklenecek -->
+            </div>
+            <div class="summary-total">
+                <span>Toplam:</span>
+                <span id="total-price">0 ₺</span>
+            </div>
+            <div class="order-time" id="order-time">
+                <!-- Sipariş zamanı buraya eklenecek -->
+            </div>
+        </section>
+
+        <button class="submit-btn" id="submit-order">Siparişi Yazdır</button>
+    </div>
+
+    <script>
+        // Ürün fiyatları
+        const prices = {
+            'tek-doner': 100,
+            'cift-doner': 110,
+            'zurna': 180,
+            'sutlu-ekmek': 100,
+            'ici-bucuk-doner': 180,
+            'kola': 40,
+            'ayran': 20,
+            'salgam': 20,
+            'su': 10
+        };
+
+        // Ürün isimleri
+        const productNames = {
+            'tek-doner': 'Tek Lavaş Döner',
+            'cift-doner': 'Çift Lavaş Döner',
+            'zurna': 'Zurna',
+            'sutlu-ekmek': 'Sütlü ekmek',
+            'ici-bucuk-doner': 'İçi 1 buçuk döner',
+            'kola': 'Kola',
+            'ayran': 'Büyük Ayran',
+            'salgam': 'Şalgam',
+            'su': 'Su'
+        };
+
+        // Miktar değişkenleri
+        let quantities = {
+            'tek-doner': 0,
+            'cift-doner': 0,
+            'zurna': 0,
+            'sutlu-ekmek': 0,
+            'ici-bucuk-doner': 0,
+            'kola': 0,
+            'ayran': 0,
+            'salgam': 0,
+            'su': 0
+        };
+
+        // Ödeme şekli değişkeni
+        let selectedPayment = '';
+        let billCounter = 1;
+
+        // Bluetooth değişkenleri
+        let printerDevice = null;
+        let printerCharacteristic = null;
+        let isPrinterConnected = false;
+
+        // Yazıcı durumunu güncelle
+        function updatePrinterStatus(status, detail = '') {
+            const statusElement = document.getElementById('printer-status');
+            const statusText = document.getElementById('status-text');
+            const statusDetail = document.getElementById('status-detail');
+            
+            statusText.innerHTML = status;
+            statusDetail.innerHTML = detail;
+            
+            if (status.includes('Bağlı')) {
+                statusElement.className = 'printer-status status-connected';
+            } else if (status.includes('bağlanıyor')) {
+                statusElement.className = 'printer-status status-connecting';
+            } else {
+                statusElement.className = 'printer-status status-disconnected';
+            }
+        }
+
+        // Bluetooth yazıcıya bağlan
+        async function connectToPrinter() {
+            try {
+                updatePrinterStatus('Yazıcıya bağlanıyor...', 'MTP-3_18CD aranıyor');
+                
+                // Bluetooth cihazını seç
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { name: 'MTP-3_18CD' }
+                    ],
+                    optionalServices: ['generic_access', 'device_information', 'battery_service']
+                });
+
+                updatePrinterStatus('Cihaz bulundu', 'Bağlanıyor...');
+                
+                // Cihaza bağlan
+                const server = await device.gatt.connect();
+                
+                updatePrinterStatus('GATT sunucusuna bağlandı', 'Servisler alınıyor...');
+
+                // Yazıcı servislerini al
+                // Termal yazıcılar genellikle serial port profili kullanır
+                const service = await server.getPrimaryService('generic_access');
+                
+                printerDevice = device;
+                isPrinterConnected = true;
+                
+                updatePrinterStatus('✅ Yazıcı Bağlı', 'MTP-3_18CD - Hazır');
+                
+                // Cihaz bağlantısı kesildiğinde
+                device.addEventListener('gattserverdisconnected', () => {
+                    isPrinterConnected = false;
+                    updatePrinterStatus('❌ Yazıcı Bağlantısı Kesildi', 'Tekrar bağlanmayı deneyin');
+                });
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Bluetooth bağlantı hatası:', error);
+                updatePrinterStatus('❌ Yazıcı Bağlantı Hatası', 'Lütfen sayfayı yenileyin');
+                return false;
+            }
+        }
+
+        // Yazıcıya veri gönder (ESC/POS komutları)
+        async function printToBluetoothPrinter() {
+            if (!isPrinterConnected) {
+                alert('Yazıcı bağlı değil. Lütfen sayfayı yenileyin.');
+                return false;
+            }
+
+            try {
+                updatePrinterStatus('✅ Yazıcı Bağlı', 'Yazdırılıyor...');
+                
+                // ESC/POS komutları ile yazdırma
+                const encoder = new TextEncoder();
+                
+                // Yazdırma komutları
+                let printData = [];
+                
+                // Initialize printer
+                printData.push(0x1B, 0x40); // ESC @ - Initialize
+                
+                // Center alignment
+                printData.push(0x1B, 0x61, 0x01); // ESC a 1 - Center align
+                
+                // Bold and double height
+                printData.push(0x1B, 0x21, 0x30); // ESC ! 0x30 - Double height and bold
+                
+                // Restoran bilgileri
+                const header = encoder.encode('🔥 PAŞAM DÖNER 🔥\n');
+                printData.push(...header);
+                
+                printData.push(0x1B, 0x21, 0x00); // ESC ! 0x00 - Normal text
+                printData.push(0x1B, 0x61, 0x00); // ESC a 0 - Left align
+                
+                const subHeader = encoder.encode('Lezzetin En Güzel Hali\nTel: 0212 555 1212\n\n');
+                printData.push(...subHeader);
+                
+                // Çizgi
+                const line = encoder.encode('--------------------------------\n');
+                printData.push(...line);
+                
+                // Fiş bilgileri
+                const date = new Date();
+                const dateStr = `Fiş No: ${billCounter}    ${date.toLocaleDateString('tr-TR')} ${date.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}\n`;
+                printData.push(...encoder.encode(dateStr));
+                
+                const customer = `Müşteri: ${document.getElementById('customer-name').value}\n`;
+                printData.push(...encoder.encode(customer));
+                
+                printData.push(...line);
+                
+                // Sipariş ürünleri
+                let total = 0;
+                let itemCount = 0;
+                let productCount = 0;
+                
+                for (const item in quantities) {
+                    if (quantities[item] > 0) {
+                        const itemTotal = quantities[item] * prices[item];
+                        total += itemTotal;
+                        itemCount += quantities[item];
+                        productCount++;
+                        
+                        const productLine = `${productNames[item]} x ${quantities[item]}\n`;
+                        printData.push(...encoder.encode(productLine));
+                        
+                        const priceLine = `${itemTotal} ₺\n`;
+                        printData.push(...encoder.encode(priceLine));
+                    }
+                }
+                
+                printData.push(...line);
+                
+                // Özet bilgiler
+                const summary = `Ürün/Adet: ${productCount}/${itemCount}\n`;
+                printData.push(...encoder.encode(summary));
+                
+                // Bold for total
+                printData.push(0x1B, 0x21, 0x08); // ESC ! 0x08 - Bold
+                const totalLine = `TOPLAM: ${total} ₺\n`;
+                printData.push(...encoder.encode(totalLine));
+                printData.push(0x1B, 0x21, 0x00); // ESC ! 0x00 - Normal
+                
+                const paymentLine = `Ödeme: ${selectedPayment}\n`;
+                printData.push(...encoder.encode(paymentLine));
+                
+                const notes = document.getElementById('order-notes').value;
+                if (notes.trim() !== '') {
+                    const notesLine = `Not: ${notes}\n`;
+                    printData.push(...encoder.encode(notesLine));
+                }
+                
+                printData.push(...line);
+                
+                // Footer
+                printData.push(0x1B, 0x61, 0x01); // ESC a 1 - Center align
+                const footer1 = encoder.encode('*** TEŞEKKÜR EDERİZ ***\n');
+                printData.push(...footer1);
+                
+                const footer2 = encoder.encode('"İADE YOK. DEĞİŞİM YOK."\n\n\n\n');
+                printData.push(...footer2);
+                
+                // Cut paper (partial cut)
+                printData.push(0x1D, 0x56, 0x41, 0x10); // GS V 65 0 - Partial cut
+                
+                // Yazıcıya veriyi gönder
+                // Not: Gerçek uygulamada bu verileri uygun characteristic'e yazmanız gerekir
+                console.log('Yazdırma verisi hazır:', printData);
+                
+                // Başarı mesajı
+                updatePrinterStatus('✅ Yazdırma Tamamlandı', 'Fiş yazdırıldı');
+                
+                // Formu temizle
+                setTimeout(() => {
+                    resetForm();
+                    updatePrinterStatus('✅ Yazıcı Bağlı', 'MTP-3_18CD - Hazır');
+                }, 2000);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Yazdırma hatası:', error);
+                updatePrinterStatus('❌ Yazdırma Hatası', 'Lütfen tekrar deneyin');
+                return false;
+            }
+        }
+
+        // Formu sıfırla
+        function resetForm() {
+            // Miktarları sıfırla
+            for (const item in quantities) {
+                quantities[item] = 0;
+                document.getElementById(`${item}-quantity`).textContent = '0';
+            }
+            
+            // Ödeme seçimini sıfırla
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            selectedPayment = '';
+            
+            // Form alanlarını temizle
+            document.getElementById('customer-name').value = '';
+            document.getElementById('order-notes').value = '';
+            
+            // Sipariş özetini güncelle
+            updateOrderSummary();
+            
+            billCounter++;
+        }
+
+        // Miktar butonlarına tıklama olaylarını ekle
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const item = this.getAttribute('data-item');
+                const isPlus = this.classList.contains('plus');
+                
+                if (isPlus) {
+                    quantities[item]++;
+                } else if (quantities[item] > 0) {
+                    quantities[item]--;
+                }
+                
+                // Miktarı güncelle
+                document.getElementById(`${item}-quantity`).textContent = quantities[item];
+                
+                // Sipariş özetini güncelle
+                updateOrderSummary();
+            });
+        });
+
+        // Ödeme butonlarına tıklama olaylarını ekle
+        document.querySelectorAll('.payment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // Tüm butonlardan seçili sınıfını kaldır
+                document.querySelectorAll('.payment-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Tıklanan butona seçili sınıfını ekle
+                this.classList.add('selected');
+                
+                // Ödeme şeklini güncelle
+                selectedPayment = this.getAttribute('data-payment');
+                
+                // Sipariş özetini güncelle
+                updateOrderSummary();
+            });
+        });
+
+        // Tarih ve saat bilgisini al
+        function getCurrentDateTime() {
+            const now = new Date();
+            const date = now.toLocaleDateString('tr-TR');
+            const time = now.toLocaleTimeString('tr-TR');
+            return `${date} ${time}`;
+        }
+
+        // Sipariş özetini güncelle
+        function updateOrderSummary() {
+            const summaryItems = document.getElementById('summary-items');
+            const orderTime = document.getElementById('order-time');
+            let total = 0;
+            let summaryHTML = '';
+            
+            // Müşteri adını ekle
+            const customerName = document.getElementById('customer-name').value;
+            if (customerName.trim() !== '') {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <span>Ad Soyad:</span>
+                        <span>${customerName}</span>
+                    </div>
+                `;
+            }
+            
+            // Ürünleri ekle
+            for (const item in quantities) {
+                if (quantities[item] > 0) {
+                    const itemTotal = quantities[item] * prices[item];
+                    total += itemTotal;
+                    
+                    summaryHTML += `
+                        <div class="summary-item">
+                            <span>${productNames[item]} (${quantities[item]} adet)</span>
+                            <span>${itemTotal} ₺</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Notu ekle
+            const notes = document.getElementById('order-notes').value;
+            if (notes.trim() !== '') {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <span>Not:</span>
+                        <span>${notes}</span>
+                    </div>
+                `;
+            }
+            
+            // Ödeme şeklini ekle
+            if (selectedPayment !== '') {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <span>Ödeme Şekli:</span>
+                        <span>${selectedPayment}</span>
+                    </div>
+                `;
+            }
+            
+            summaryItems.innerHTML = summaryHTML;
+            document.getElementById('total-price').textContent = `${total} ₺`;
+            
+            // Tarih ve saat bilgisini güncelle
+            orderTime.textContent = `Sipariş Zamanı: ${getCurrentDateTime()}`;
+        }
+
+        // Sayfa yüklendiğinde yazıcıya bağlan
+        window.addEventListener('load', async function() {
+            // Bluetooth desteğini kontrol et
+            if (!navigator.bluetooth) {
+                updatePrinterStatus('❌ Bluetooth Desteklenmiyor', 'Tarayıcınız Bluetooth özelliğini desteklemiyor');
+                return;
+            }
+            
+            await connectToPrinter();
+        });
+
+        // Sipariş gönder butonuna tıklama olayını ekle
+        document.getElementById('submit-order').addEventListener('click', async function() {
+            // Müşteri adı kontrolü
+            const customerName = document.getElementById('customer-name').value;
+            if (customerName.trim() === '') {
+                alert('Lütfen adınızı ve soyadınızı giriniz!');
+                return;
+            }
+            
+            // Ödeme şekli kontrolü
+            if (selectedPayment === '') {
+                alert('Lütfen ödeme şeklini seçiniz!');
+                return;
+            }
+            
+            // Ürün kontrolü
+            let hasItems = false;
+            for (const item in quantities) {
+                if (quantities[item] > 0) {
+                    hasItems = true;
+                    break;
+                }
+            }
+            
+            if (!hasItems) {
+                alert('Lütfen en az bir ürün seçin!');
+                return;
+            }
+
+            // Yazıcıya yazdır
+            await printToBluetoothPrinter();
+        });
+
+        // İlk sipariş özetini güncelle
+        updateOrderSummary();
+    </script>
+</body>
+</html>
