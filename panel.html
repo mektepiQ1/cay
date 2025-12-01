@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel - Form Verileri</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background-color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .panel-content {
+            background-color: white;
+            border-radius: 0 0 15px 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .data-section {
+            margin-bottom: 40px;
+        }
+        
+        .data-section h2 {
+            color: #f5576c;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .data-card {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #6a11cb;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-item {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .data-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 150px;
+        }
+        
+        .data-value {
+            color: #333;
+            flex: 1;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #777;
+            font-size: 18px;
+            padding: 40px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .primary {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        .secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .data-item {
+                flex-direction: column;
+            }
+            
+            .data-label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Form Verileri Paneli</h1>
+            <p class="subtitle">Gönderilen form verilerini buradan görüntüleyebilirsiniz</p>
+        </header>
+        
+        <div class="panel-content">
+            <div class="data-section">
+                <h2>LocalStorage Verileri</h2>
+                <div id="localStorageData">
+                    <div class="no-data">LocalStorage'da form verisi bulunamadı. Lütfen önce form sayfasından veri gönderin.</div>
+                </div>
+            </div>
+            
+            <div class="data-section">
+                <h2>Backend'den Gelen Veriler</h2>
+                <div id="backendData">
+                    <div class="no-data">Backend'den henüz veri alınmadı veya bağlantı kurulamadı.</div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <a href="form.html" class="btn primary">Form Sayfasına Dön</a>
+                <button onclick="refreshData()" class="btn secondary">Verileri Yenile</button>
+                <button onclick="clearData()" class="btn secondary">Verileri Temizle</button>
+                <a href="https://github.com" target="_blank" class="btn secondary">GitHub Projesi</a>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Form Paneli &copy; 2023 | Backend: InfinityFree | Frontend: GitHub Pages</p>
+        </footer>
+    </div>
+
+    <script>
+        // Sayfa yüklendiğinde verileri göster
+        document.addEventListener('DOMContentLoaded', function() {
+            displayLocalStorageData();
+            fetchBackendData();
+        });
+        
+        // LocalStorage'dan verileri al ve göster
+        function displayLocalStorageData() {
+            const container = document.getElementById('localStorageData');
+            const savedData = localStorage.getItem('formSubmission');
+            
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                
+                let html = '<div class="data-card">';
+                html += '<div class="data-item"><span class="data-label">Gönderim Zamanı:</span><span class="data-value">' + formData.submissionTime + '</span></div>';
+                html += '<div class="data-item"><span class="data-label">Ad Soyad:</span><span class="data-value">' + formData.name + '</span></div>';
+                html += '<div class="data-item"><span class="data-label">E-posta:</span><span class="data-value">' + formData.email + '</span></div>';
+                html += '<div class="data-item"><span class="data-label">Telefon:</span><span class="data-value">' + formData.phone + '</span></div>';
+                html += '<div class="data-item"><span class="data-label">Şehir:</span><span class="data-value">' + formData.city + '</span></div>';
+                html += '<div class="data-item"><span class="data-label">Doğum Tarihi:</span><span class="data-value">' + formData.birthdate + '</span></div>';
+                
+                if (formData.messageText) {
+                    html += '<div class="data-item"><span class="data-label">Mesaj:</span><span class="data-value">' + formData.messageText + '</span></div>';
+                }
+                
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="no-data">LocalStorage\'da form verisi bulunamadı. Lütfen önce form sayfasından veri gönderin.</div>';
+            }
+        }
+        
+        // Backend'den verileri al
+        function fetchBackendData() {
+            const container = document.getElementById('backendData');
+            
+            // InfinityFree'daki backend PHP dosyasına istek gönder
+            fetch('https://pasam.ct.ws/backend.php?i=1')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        let html = '';
+                        
+                        // Her bir veri için kart oluştur
+                        data.data.forEach((formData, index) => {
+                            html += '<div class="data-card">';
+                            html += '<div class="data-item"><span class="data-label">Kayıt No:</span><span class="data-value">' + (index + 1) + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Gönderim Zamanı:</span><span class="data-value">' + formData.submissionTime + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Ad Soyad:</span><span class="data-value">' + formData.name + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">E-posta:</span><span class="data-value">' + formData.email + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Telefon:</span><span class="data-value">' + formData.phone + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Şehir:</span><span class="data-value">' + formData.city + '</span></div>';
+                            html += '</div>';
+                        });
+                        
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<div class="no-data">Backend\'de kayıtlı form verisi bulunamadı.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Backend bağlantı hatası:', error);
+                    container.innerHTML = '<div class="no-data">Backend bağlantısı kurulamadı. Lütfen daha sonra tekrar deneyin.</div>';
+                });
+        }
+        
+        // Verileri yenile
+        function refreshData() {
+            displayLocalStorageData();
+            fetchBackendData();
+            alert('Veriler yenilendi!');
+        }
+        
+        // Verileri temizle
+        function clearData() {
+            if (confirm('LocalStorage\'daki verileri temizlemek istediğinize emin misiniz?')) {
+                localStorage.removeItem('formSubmission');
+                displayLocalStorageData();
+                alert('LocalStorage verileri temizlendi!');
+            }
+        }
+    </script>
+</body>
+</html>
