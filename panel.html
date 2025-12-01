@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel - Form Verileri</title>
+    <style>
+        /* CSS kodu aynı kalacak, sadece JS kısmını güncelliyorum */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Form Verileri Paneli</h1>
+            <p class="subtitle">Gönderilen form verilerini buradan görüntüleyebilirsiniz</p>
+            <p class="subtitle" style="font-size:14px; margin-top:5px;">
+                Backend URL: https://pasam.ct.ws/backend.php
+            </p>
+        </header>
+        
+        <div class="panel-content">
+            <div class="data-section">
+                <h2>LocalStorage Verileri (Son Gönderim)</h2>
+                <div id="localStorageData">
+                    <div class="no-data">LocalStorage'da form verisi bulunamadı.</div>
+                </div>
+            </div>
+            
+            <div class="data-section">
+                <h2>Backend'den Gelen Veriler 
+                    <button onclick="fetchBackendData()" style="background:#4CAF50;color:white;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;font-size:12px;margin-left:10px;">
+                        Yenile
+                    </button>
+                    <span id="backendStatus" style="font-size:14px; margin-left:10px;"></span>
+                </h2>
+                <div id="backendData">
+                    <div class="no-data">Backend verileri yükleniyor...</div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <a href="form.html" class="btn primary">Form Sayfasına Dön</a>
+                <button onclick="refreshData()" class="btn secondary">Tüm Verileri Yenile</button>
+                <button onclick="clearData()" class="btn secondary">LocalStorage'ı Temizle</button>
+                <a href="https://pasam.ct.ws/backend.php" target="_blank" class="btn secondary">Backend Test</a>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Form Paneli | Backend: pasam.ct.ws | Last Update: <span id="currentTime"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Backend URL
+        const BACKEND_URL = 'https://pasam.ct.ws/backend.php';
+        
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            // Saati güncelle
+            document.getElementById('currentTime').textContent = new Date().toLocaleString('tr-TR');
+            
+            displayLocalStorageData();
+            fetchBackendData();
+            
+            // Her 30 saniyede bir backend verilerini yenile
+            setInterval(fetchBackendData, 30000);
+        });
+        
+        function displayLocalStorageData() {
+            const container = document.getElementById('localStorageData');
+            const savedData = localStorage.getItem('formSubmission');
+            
+            if (savedData) {
+                try {
+                    const formData = JSON.parse(savedData);
+                    
+                    let html = '<div class="data-card">';
+                    html += '<div class="data-item"><span class="data-label">Gönderim Zamanı:</span><span class="data-value">' + (formData.submissionTime || 'Bilinmiyor') + '</span></div>';
+                    html += '<div class="data-label">Ad Soyad:</span><span class="data-value">' + (formData.name || 'Belirtilmemiş') + '</span></div>';
+                    html += '<div class="data-label">E-posta:</span><span class="data-value">' + (formData.email || 'Belirtilmemiş') + '</span></div>';
+                    html += '<div class="data-label">Telefon:</span><span class="data-value">' + (formData.phone || 'Belirtilmemiş') + '</span></div>';
+                    html += '<div class="data-label">Şehir:</span><span class="data-value">' + (formData.city || 'Belirtilmemiş') + '</span></div>';
+                    html += '<div class="data-label">Doğum Tarihi:</span><span class="data-value">' + (formData.birthdate || 'Belirtilmemiş') + '</span></div>';
+                    
+                    if (formData.messageText) {
+                        html += '<div class="data-label">Mesaj:</span><span class="data-value">' + formData.messageText + '</span></div>';
+                    }
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                } catch (e) {
+                    container.innerHTML = '<div class="no-data">LocalStorage verisi okunamadı.</div>';
+                }
+            } else {
+                container.innerHTML = '<div class="no-data">LocalStorage\'da form verisi bulunamadı.</div>';
+            }
+        }
+        
+        function fetchBackendData() {
+            const container = document.getElementById('backendData');
+            const status = document.getElementById('backendStatus');
+            
+            status.textContent = 'Yükleniyor...';
+            status.style.color = '#FF9800';
+            
+            fetch(BACKEND_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Backend verileri:', data);
+                    
+                    status.textContent = `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR')}`;
+                    status.style.color = '#4CAF50';
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        let html = '';
+                        
+                        // Son gönderilenler en üstte olacak şekilde ters çevir
+                        data.data.reverse().forEach((formData, index) => {
+                            html += '<div class="data-card">';
+                            html += '<div class="data-item"><span class="data-label">Kayıt No:</span><span class="data-value">' + (data.data.length - index) + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">ID:</span><span class="data-value" style="font-size:12px;">' + (formData.id || 'N/A') + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Gönderim Zamanı:</span><span class="data-value">' + (formData.submissionTime || formData.serverTimestamp || 'Bilinmiyor') + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Ad Soyad:</span><span class="data-value">' + (formData.name || 'Belirtilmemiş') + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">E-posta:</span><span class="data-value">' + (formData.email || 'Belirtilmemiş') + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Telefon:</span><span class="data-value">' + (formData.phone || 'Belirtilmemiş') + '</span></div>';
+                            html += '<div class="data-item"><span class="data-label">Şehir:</span><span class="data-value">' + (formData.city || 'Belirtilmemiş') + '</span></div>';
+                            html += '</div>';
+                        });
+                        
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<div class="no-data">Backend\'de henüz kayıtlı form verisi bulunamadı.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Backend bağlantı hatası:', error);
+                    status.textContent = `Hata: ${error.message}`;
+                    status.style.color = '#F44336';
+                    
+                    container.innerHTML = `
+                        <div class="no-data">
+                            <p>Backend bağlantısı kurulamadı: ${error.message}</p>
+                            <p>Olası nedenler:</p>
+                            <ul style="text-align:left; margin:10px auto; max-width:500px;">
+                                <li>CORS politikası</li>
+                                <li>Backend dosyası yüklenmemiş</li>
+                                <li>PHP desteği yok</li>
+                                <li>Dosya izinleri</li>
+                            </ul>
+                            <p><a href="${BACKEND_URL}" target="_blank">Backend linkini</a> yeni sekmede açarak test edin.</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        function refreshData() {
+            displayLocalStorageData();
+            fetchBackendData();
+            document.getElementById('currentTime').textContent = new Date().toLocaleString('tr-TR');
+        }
+        
+        function clearData() {
+            if (confirm('LocalStorage\'daki verileri temizlemek istediğinize emin misiniz?')) {
+                localStorage.removeItem('formSubmission');
+                displayLocalStorageData();
+                alert('LocalStorage verileri temizlendi!');
+            }
+        }
+    </script>
+</body>
+</html>

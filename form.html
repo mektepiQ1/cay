@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Sayfası</title>
+    <style>
+        /* CSS kodu aynı kalacak, sadece JS kısmını güncelliyorum */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kayıt Formu</h1>
+        <p class="subtitle">Lütfen aşağıdaki bilgileri doldurunuz</p>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="name">Ad Soyad</label>
+                <input type="text" id="name" name="name" placeholder="Adınız ve soyadınız" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">E-posta Adresi</label>
+                <input type="email" id="email" name="email" placeholder="ornek@email.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Telefon Numarası</label>
+                <input type="tel" id="phone" name="phone" placeholder="(555) 123 45 67" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="city">Şehir</label>
+                <select id="city" name="city" required>
+                    <option value="" disabled selected>Şehir seçiniz</option>
+                    <option value="istanbul">İstanbul</option>
+                    <option value="ankara">Ankara</option>
+                    <option value="izmir">İzmir</option>
+                    <option value="bursa">Bursa</option>
+                    <option value="antalya">Antalya</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthdate">Doğum Tarihi</label>
+                <input type="date" id="birthdate" name="birthdate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="messageText">Mesajınız</label>
+                <textarea id="messageText" name="messageText" placeholder="Eklemek istediğiniz bir mesajınız var mı?"></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">Formu Gönder</button>
+        </form>
+        
+        <div class="links">
+            <a href="panel.html" target="_blank">Panele Git</a>
+            <a href="https://github.com" target="_blank">GitHub Projesi</a>
+            <a href="https://pasam.ct.ws/backend.php" target="_blank">Backend Test</a>
+        </div>
+    </div>
+
+    <script>
+        // InfinityFree backend URL
+        const BACKEND_URL = 'https://pasam.ct.ws/backend.php';
+        
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Form verilerini topla
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                city: document.getElementById('city').value,
+                birthdate: document.getElementById('birthdate').value,
+                messageText: document.getElementById('messageText').value,
+                submissionTime: new Date().toLocaleString('tr-TR')
+            };
+            
+            // 1. Yöntem: localStorage ile veriyi sakla
+            localStorage.setItem('formSubmission', JSON.stringify(formData));
+            
+            // 2. Yöntem: Backend'e gönder
+            sendToBackend(formData);
+        });
+        
+        function sendToBackend(formData) {
+            const messageDiv = document.getElementById('message');
+            
+            // Backend'e istek gönder
+            fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Backend response:', data);
+                
+                if (data.success) {
+                    showMessage('✓ Form başarıyla backend\'e gönderildi! ID: ' + data.id, 'success');
+                    document.getElementById('registrationForm').reset();
+                } else {
+                    showMessage('✗ Backend hatası: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Backend bağlantı hatası:', error);
+                showMessage('⚠ Backend bağlantısı kurulamadı. Veriler sadece localStorage\'a kaydedildi.', 'error');
+                
+                // Alternatif: Form verilerini URL parametreleri olarak gönder
+                setTimeout(() => {
+                    tryAlternativeMethod(formData);
+                }, 2000);
+            });
+        }
+        
+        // Alternatif yöntem: Form verilerini farklı şekilde gönder
+        function tryAlternativeMethod(formData) {
+            // FormData objesi oluştur (JSON yerine)
+            const formDataObj = new FormData();
+            Object.keys(formData).forEach(key => {
+                formDataObj.append(key, formData[key]);
+            });
+            
+            fetch(BACKEND_URL, {
+                method: 'POST',
+                body: formDataObj
+            })
+            .then(response => response.text())
+            .then(text => {
+                console.log('Alternatif method response:', text);
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        showMessage('✓ Alternatif yöntemle backend\'e ulaşıldı!', 'success');
+                    }
+                } catch (e) {
+                    console.log('Response JSON değil:', text);
+                }
+            })
+            .catch(error => {
+                console.error('Alternatif method da başarısız:', error);
+            });
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Backend bağlantı testi butonu ekle
+        window.addEventListener('load', function() {
+            // Backend test linki ekle
+            const testLink = document.createElement('a');
+            testLink.href = '#';
+            testLink.textContent = 'Backend Test';
+            testLink.style.marginLeft = '10px';
+            testLink.onclick = function(e) {
+                e.preventDefault();
+                testBackendConnection();
+            };
+            
+            document.querySelector('.links').appendChild(testLink);
+        });
+        
+        function testBackendConnection() {
+            fetch(BACKEND_URL)
+                .then(response => response.json())
+                .then(data => {
+                    alert('Backend bağlantı başarılı! Kayıt sayısı: ' + (data.count || 0));
+                })
+                .catch(error => {
+                    alert('Backend bağlantı hatası: ' + error.message);
+                });
+        }
+    </script>
+</body>
+</html>
