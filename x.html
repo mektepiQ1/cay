@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profesyonel Masa Takip Sistemi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a3a 0%, #2d3e50 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: #f8b739;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            color: #a0aec0;
+            font-size: 1.1rem;
+        }
+        
+        .input-section {
+            background: rgba(30, 40, 50, 0.8);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #f8b739;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #f8b739;
+            box-shadow: 0 0 0 2px rgba(248, 183, 57, 0.2);
+        }
+        
+        .add-btn {
+            background: linear-gradient(to right, #f8b739, #e6a22e);
+            color: #1a2a3a;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-btn:hover {
+            background: linear-gradient(to right, #e6a22e, #d49226);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(248, 183, 57, 0.3);
+        }
+        
+        .masalar-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .masa-card {
+            background: rgba(30, 40, 50, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .masa-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .masa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .masa-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f8b739;
+        }
+        
+        .masa-status {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-empty {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+        
+        .status-occupied {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+        
+        .masa-content {
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+        
+        .info-label {
+            color: #a0aec0;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: white;
+        }
+        
+        .tutar-input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            text-align: right;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tutar-input:focus {
+            outline: none;
+            border-color: #f8b739;
+            box-shadow: 0 0 0 2px rgba(248, 183, 57, 0.2);
+        }
+        
+        .masa-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .status-btn {
+            flex: 1;
+            padding: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .empty-btn {
+            background: rgba(46, 213, 115, 0.15);
+            color: #2ed573;
+        }
+        
+        .empty-btn:hover {
+            background: rgba(46, 213, 115, 0.25);
+        }
+        
+        .occupied-btn {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+        }
+        
+        .occupied-btn:hover {
+            background: rgba(255, 71, 87, 0.25);
+        }
+        
+        .delete-btn {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff6b81;
+            border: 1px solid rgba(255, 107, 129, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.success {
+            background: #2ed573;
+            color: #1a2a3a;
+        }
+        
+        .notification.error {
+            background: #ff4757;
+            color: white;
+        }
+        
+        .statistics {
+            background: rgba(30, 40, 50, 0.8);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-around;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #f8b739;
+        }
+        
+        .stat-label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .masalar-container {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .input-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .add-btn {
+                justify-content: center;
+                margin-top: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .masalar-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-concierge-bell"></i> Masa Takip Sistemi</h1>
+            <p class="subtitle">Sipariş ve masa yönetimi için profesyonel çözüm</p>
+        </header>
+        
+        <div class="statistics">
+            <div class="stat-item">
+                <div class="stat-value" id="total-occupied">0</div>
+                <div class="stat-label">DOLU MASA</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-empty">15</div>
+                <div class="stat-label">BOŞ MASA</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-amount">0 ₺</div>
+                <div class="stat-label">TOPLAM TUTAR</div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="siparis-no"><i class="fas fa-receipt"></i> Sipariş Numarası</label>
+                <input type="text" id="siparis-no" placeholder="Sipariş numarasını girin">
+            </div>
+            
+            <div class="input-group">
+                <label for="masa-no"><i class="fas fa-chair"></i> Masa Numarası</label>
+                <input type="number" id="masa-no" min="1" max="15" placeholder="1-15 arası masa seçin">
+            </div>
+            
+            <button class="add-btn" id="add-masa">
+                <i class="fas fa-plus-circle"></i> Masa Ekle / Güncelle
+            </button>
+        </div>
+        
+        <div class="masalar-container" id="masalar-container">
+            <!-- Masa kartları burada dinamik olarak oluşturulacak -->
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // Başlangıçta 15 masa oluştur
+        const masalar = [];
+        
+        // Sayfa yüklendiğinde masa kartlarını oluştur
+        document.addEventListener('DOMContentLoaded', function() {
+            const masalarContainer = document.getElementById('masalar-container');
+            
+            // 15 masa oluştur
+            for (let i = 1; i <= 15; i++) {
+                const masa = {
+                    id: i,
+                    masaNo: i,
+                    siparisNo: '',
+                    durum: 'bos',
+                    toplamTutar: 0
+                };
+                masalar.push(masa);
+                
+                // Masa kartı oluştur
+                const masaCard = createMasaCard(masa);
+                masalarContainer.appendChild(masaCard);
+            }
+            
+            // İstatistikleri güncelle
+            updateStatistics();
+        });
+        
+        // Masa kartı oluşturma fonksiyonu
+        function createMasaCard(masa) {
+            const card = document.createElement('div');
+            card.className = 'masa-card';
+            card.id = `masa-${masa.id}`;
+            
+            // Duruma göre sınıf ekle
+            if (masa.durum === 'dolu') {
+                card.style.borderLeft = '5px solid #ff4757';
+            } else {
+                card.style.borderLeft = '5px solid #2ed573';
+            }
+            
+            card.innerHTML = `
+                <div class="masa-header">
+                    <div class="masa-title">MASA ${masa.masaNo}</div>
+                    <div class="masa-status ${masa.durum === 'dolu' ? 'status-occupied' : 'status-empty'}">
+                        ${masa.durum === 'dolu' ? '<i class="fas fa-users"></i> DOLU' : '<i class="fas fa-chair"></i> BOŞ'}
+                    </div>
+                </div>
+                
+                <div class="masa-content">
+                    <div class="info-row">
+                        <span class="info-label">Sipariş No:</span>
+                        <span class="info-value" id="siparis-no-${masa.id}">${masa.siparisNo || '-'}</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="info-label">Durum:</span>
+                        <span class="info-value">${masa.durum === 'dolu' ? 'Dolu' : 'Boş'}</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="info-label">Toplam Tutar:</span>
+                    </div>
+                    
+                    <input type="number" class="tutar-input" 
+                           id="tutar-input-${masa.id}" 
+                           value="${masa.toplamTutar}" 
+                           placeholder="Tutar girin" 
+                           min="0" step="0.01">
+                </div>
+                
+                <div class="masa-actions">
+                    <button class="status-btn empty-btn" onclick="changeStatus(${masa.id}, 'bos')">
+                        <i class="fas fa-chair"></i> Boş Yap
+                    </button>
+                    <button class="status-btn occupied-btn" onclick="changeStatus(${masa.id}, 'dolu')">
+                        <i class="fas fa-users"></i> Dolu Yap
+                    </button>
+                    <button class="delete-btn" onclick="deleteMasa(${masa.id})">
+                        <i class="fas fa-trash-alt"></i> Sil
+                    </button>
+                </div>
+            `;
+            
+            // Tutar input'u için event listener ekle
+            const tutarInput = card.querySelector(`#tutar-input-${masa.id}`);
+            tutarInput.addEventListener('input', function() {
+                updateTutar(masa.id, parseFloat(this.value) || 0);
+            });
+            
+            return card;
+        }
+        
+        // Masa ekle/güncelle butonu
+        document.getElementById('add-masa').addEventListener('click', function() {
+            const siparisNo = document.getElementById('siparis-no').value.trim();
+            const masaNo = parseInt(document.getElementById('masa-no').value);
+            
+            // Validasyon
+            if (!siparisNo) {
+                showNotification('Sipariş numarası gerekli!', 'error');
+                return;
+            }
+            
+            if (!masaNo || masaNo < 1 || masaNo > 15) {
+                showNotification('Lütfen 1-15 arası geçerli bir masa numarası girin!', 'error');
+                return;
+            }
+            
+            // Masa numarasına göre masayı bul
+            const masaIndex = masalar.findIndex(m => m.masaNo === masaNo);
+            
+            if (masaIndex !== -1) {
+                // Masayı güncelle
+                masalar[masaIndex].siparisNo = siparisNo;
+                masalar[masaIndex].durum = 'dolu';
+                
+                // Kartı güncelle
+                updateMasaCard(masalar[masaIndex]);
+                showNotification(`Masa ${masaNo} başarıyla güncellendi!`, 'success');
+            }
+            
+            // Inputları temizle
+            document.getElementById('siparis-no').value = '';
+            document.getElementById('masa-no').value = '';
+            
+            // İstatistikleri güncelle
+            updateStatistics();
+        });
+        
+        // Masa durumunu değiştirme
+        function changeStatus(masaId, yeniDurum) {
+            const masaIndex = masalar.findIndex(m => m.id === masaId);
+            
+            if (masaIndex !== -1) {
+                masalar[masaIndex].durum = yeniDurum;
+                
+                // Eğer boş yapılıyorsa sipariş numarasını temizle
+                if (yeniDurum === 'bos') {
+                    masalar[masaIndex].siparisNo = '';
+                    masalar[masaIndex].toplamTutar = 0;
+                }
+                
+                updateMasaCard(masalar[masaIndex]);
+                showNotification(`Masa ${masalar[masaIndex].masaNo} durumu değiştirildi!`, 'success');
+                updateStatistics();
+            }
+        }
+        
+        // Tutarı güncelleme
+        function updateTutar(masaId, yeniTutar) {
+            const masaIndex = masalar.findIndex(m => m.id === masaId);
+            
+            if (masaIndex !== -1) {
+                masalar[masaIndex].toplamTutar = yeniTutar;
+                updateStatistics();
+            }
+        }
+        
+        // Masayı silme (sıfırlama)
+        function deleteMasa(masaId) {
+            const masaIndex = masalar.findIndex(m => m.id === masaId);
+            
+            if (masaIndex !== -1) {
+                if (confirm(`Masa ${masalar[masaIndex].masaNo} bilgilerini silmek istediğinize emin misiniz?`)) {
+                    masalar[masaIndex].siparisNo = '';
+                    masalar[masaIndex].durum = 'bos';
+                    masalar[masaIndex].toplamTutar = 0;
+                    
+                    updateMasaCard(masalar[masaIndex]);
+                    showNotification(`Masa ${masalar[masaIndex].masaNo} bilgileri silindi!`, 'success');
+                    updateStatistics();
+                }
+            }
+        }
+        
+        // Masa kartını güncelleme
+        function updateMasaCard(masa) {
+            const card = document.getElementById(`masa-${masa.id}`);
+            if (!card) return;
+            
+            // Kart içeriğini güncelle
+            const statusElement = card.querySelector('.masa-status');
+            const siparisNoElement = card.querySelector(`#siparis-no-${masa.id}`);
+            const durumElement = card.querySelector('.info-row:nth-child(2) .info-value');
+            const tutarInput = card.querySelector(`#tutar-input-${masa.id}`);
+            
+            // Durumu güncelle
+            if (masa.durum === 'dolu') {
+                card.style.borderLeft = '5px solid #ff4757';
+                statusElement.className = 'masa-status status-occupied';
+                statusElement.innerHTML = '<i class="fas fa-users"></i> DOLU';
+            } else {
+                card.style.borderLeft = '5px solid #2ed573';
+                statusElement.className = 'masa-status status-empty';
+                statusElement.innerHTML = '<i class="fas fa-chair"></i> BOŞ';
+            }
+            
+            // Sipariş numarasını güncelle
+            siparisNoElement.textContent = masa.siparisNo || '-';
+            
+            // Durum metnini güncelle
+            durumElement.textContent = masa.durum === 'dolu' ? 'Dolu' : 'Boş';
+            
+            // Tutarı güncelle
+            tutarInput.value = masa.toplamTutar;
+        }
+        
+        // İstatistikleri güncelleme
+        function updateStatistics() {
+            const doluMasalar = masalar.filter(m => m.durum === 'dolu').length;
+            const bosMasalar = masalar.length - doluMasalar;
+            const toplamTutar = masalar.reduce((total, masa) => total + (masa.toplamTutar || 0), 0);
+            
+            document.getElementById('total-occupied').textContent = doluMasalar;
+            document.getElementById('total-empty').textContent = bosMasalar;
+            document.getElementById('total-amount').textContent = toplamTutar.toFixed(2) + ' ₺';
+        }
+        
+        // Bildirim gösterme fonksiyonu
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            // 3 saniye sonra bildirimi gizle
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Sayı inputlarına sadece sayı girişi için basit kısıtlama
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('keydown', function(e) {
+                // Sadece sayılar, nokta, backspace, delete, ok tuşları
+                if (!((e.key >= '0' && e.key <= '9') || 
+                      e.key === '.' || 
+                      e.key === 'Backspace' || 
+                      e.key === 'Delete' || 
+                      e.key === 'ArrowLeft' || 
+                      e.key === 'ArrowRight' || 
+                      e.key === 'Tab')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
