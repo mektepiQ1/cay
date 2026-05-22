@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Küre | El Takibi ile Yumuşak Kontrol</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Ana panel - ferah, yarı saydam, ince çizgiler */
+        .info-panel {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, 0.9);
+            z-index: 100;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 450;
+            letter-spacing: 0.3px;
+            border: 0.5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            font-family: inherit;
+        }
+
+        .info-panel span {
+            color: #b3e4ff;
+            font-weight: 500;
+        }
+
+        /* Durum göstergeleri - ince, minimalist */
+        .status-card {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 10px 20px;
+            font-family: 'Inter', monospace;
+            font-size: 0.8rem;
+            z-index: 100;
+            border-left: 2px solid #6cffb0;
+            color: #eef5ff;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+
+        .gesture-badge {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 100;
+            pointer-events: none;
+            color: #ffefcf;
+            letter-spacing: 0.3px;
+            border: 0.5px solid rgba(255,255,200,0.2);
+            transition: 0.2s;
+        }
+
+        .instruction {
+            position: fixed;
+            top: 100px;
+            right: 24px;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 8px 18px;
+            font-size: 0.7rem;
+            color: #ccdeff;
+            pointer-events: none;
+            text-align: right;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        /* Yumuşak buton (manuel yedek) - ancak asıl kontrol elde */
+        .soft-btn {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,245,0.12);
+            backdrop-filter: blur(12px);
+            border: 0.5px solid rgba(255,255,210,0.3);
+            border-radius: 60px;
+            padding: 8px 20px;
+            color: #ddd;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            z-index: 101;
+            font-family: inherit;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .soft-btn:hover {
+            background: rgba(255,255,245,0.25);
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .info-panel { font-size: 0.7rem; top: 16px; left: 16px; right: 16px; padding: 10px 16px; }
+            .gesture-badge { font-size: 0.7rem; padding: 6px 16px; bottom: 16px; right: 16px; }
+            .status-card { font-size: 0.65rem; bottom: 16px; left: 16px; }
+            .instruction { font-size: 0.6rem; top: 80px; right: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="info-panel">
+        🤍 <span>EL TAKİBİ • FERAH KONTROL</span> 🤍 &nbsp;&nbsp; ✊ yumruk = dağıl &nbsp;|&nbsp; ✋ açık el = birleş
+    </div>
+    <div class="status-card" id="statusMsg">
+        🧘‍♀️ kamera bekleniyor...
+    </div>
+    <div class="gesture-badge" id="gestureText">
+        🌿 hazır
+    </div>
+    <div class="instruction">
+        💫 elini kameraya göster<br>
+        🕊️ yumuşak hareketlerle küreyi döndür
+    </div>
+    <button class="soft-btn" id="resetButton">🌀 birleştir (manuel)</button>
+
+    <!-- Three.js ve MediaPipe Hands CDN (kararlı) -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "@mediapipe/hands": "https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js",
+                "@mediapipe/camera_utils": "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { Hands } from '@mediapipe/hands';
+        import { Camera } from '@mediapipe/camera_utils';
+
+        // --- FERAH 3D SAHNE ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x08101a); // derin ama yumuşak lacivert
+        scene.fog = new THREE.FogExp2(0x08101a, 0.004);
+
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.2, 5.8);
+        camera.lookAt(0, 0.2, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- Işık - yumuşak ve ferah ---
+        const ambient = new THREE.AmbientLight(0x4a5b6e);
+        scene.add(ambient);
+        
+        const mainLight = new THREE.DirectionalLight(0xffefc0, 1.0);
+        mainLight.position.set(2, 3, 2.5);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        
+        const fillLight = new THREE.PointLight(0x7f9fbf, 0.5);
+        fillLight.position.set(-1.5, 1.2, 2);
+        scene.add(fillLight);
+        
+        const backLight = new THREE.PointLight(0x8aadcc, 0.4);
+        backLight.position.set(0, 1, -3);
+        scene.add(backLight);
+        
+        const rimLight = new THREE.PointLight(0xffbb99, 0.5);
+        rimLight.position.set(1.2, 1.8, -2);
+        scene.add(rimLight);
+        
+        // dekoratif zemin izi (ince çizgi grid)
+        const gridHelper = new THREE.GridHelper(14, 24, 0x88aacc, 0x446688);
+        gridHelper.position.y = -1.6;
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.2;
+        scene.add(gridHelper);
+        
+        // arka planda ince yıldızlar
+        const starField = new THREE.BufferGeometry();
+        const starCount = 1400;
+        const starPositions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPositions[i*3] = (Math.random() - 0.5) * 200;
+            starPositions[i*3+1] = (Math.random() - 0.5) * 100;
+            starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        }
+        starField.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0xc8e4ff, size: 0.06, transparent: true, opacity: 0.6 });
+        const stars = new THREE.Points(starField, starMaterial);
+        scene.add(stars);
+        
+        // --- ANA KÜRE (pürüzsüz, ferah mavi)---
+        const sphereGeo = new THREE.SphereGeometry(1.25, 128, 128);
+        const sphereMat = new THREE.MeshStandardMaterial({
+            color: 0x6c9fcf,
+            emissive: 0x102a3a,
+            roughness: 0.28,
+            metalness: 0.7,
+            emissiveIntensity: 0.3
+        });
+        const coreSphere = new THREE.Mesh(sphereGeo, sphereMat);
+        coreSphere.castShadow = true;
+        coreSphere.position.set(0, 0.2, 0);
+        scene.add(coreSphere);
+        
+        // İnce halkalar (ferah altın ve gümüş)
+        const ring1Geo = new THREE.TorusGeometry(1.55, 0.04, 96, 300);
+        const ring1Mat = new THREE.MeshStandardMaterial({ color: 0xffcc99, emissive: 0x442200, emissiveIntensity: 0.2 });
+        const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+        ring1.rotation.x = Math.PI / 2.2;
+        scene.add(ring1);
+        
+        const ring2Geo = new THREE.TorusGeometry(1.75, 0.025, 96, 300);
+        const ring2Mat = new THREE.MeshStandardMaterial({ color: 0xaaddff, emissive: 0x224466, emissiveIntensity: 0.15 });
+        const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+        ring2.rotation.z = Math.PI / 3;
+        ring2.rotation.x = 0.8;
+        scene.add(ring2);
+        
+        // --- Parçacık Sistemi (dağılma için) ---
+        const FRAGMENT_COUNT = 420;
+        const fragments = [];
+        
+        // orijinal küre yüzeyindeki noktalar ve patlama konumları
+        const centerYOffset = 0.2;
+        for (let i = 0; i < FRAGMENT_COUNT; i++) {
+            // rastgele yön (küresel)
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const origX = 1.25 * Math.sin(phi) * Math.cos(theta);
+            const origY = 1.25 * Math.sin(phi) * Math.sin(theta) + centerYOffset;
+            const origZ = 1.25 * Math.cos(phi);
+            
+            // patlama vektörü (merkezden dışarı)
+            const dir = new THREE.Vector3(origX, origY - centerYOffset, origZ).normalize();
+            const explodeDist = 2.4 + Math.random() * 1.6;
+            const explodedPos = new THREE.Vector3(
+                origX + dir.x * explodeDist,
+                origY + dir.y * explodeDist,
+                origZ + dir.z * explodeDist
+            );
+            
+            const colorHue = 0.55 + Math.random() * 0.2; // mavi/yeşil tonları
+            const color = new THREE.Color().setHSL(colorHue, 0.85, 0.65);
+            const size = 0.055 + Math.random() * 0.05;
+            const geom = new THREE.SphereGeometry(size, 12, 12);
+            const mat = new THREE.MeshStandardMaterial({ color: color, emissive: 0x224466, emissiveIntensity: 0.2 });
+            const fragment = new THREE.Mesh(geom, mat);
+            fragment.userData = {
+                originalPos: new THREE.Vector3(origX, origY, origZ),
+                explodedPos: explodedPos
+            };
+            fragment.castShadow = true;
+            fragment.visible = false;
+            scene.add(fragment);
+            fragments.push(fragment);
+        }
+        
+        let isExploded = false;
+        let explosionProgress = 0;    // 0 = birleşik, 1 = tam dağılmış
+        let targetExplode = false;
+        
+        function updateExplosion(progress) {
+            const t = Math.min(1, Math.max(0, progress));
+            fragments.forEach(frag => {
+                const orig = frag.userData.originalPos;
+                const exp = frag.userData.explodedPos;
+                frag.position.x = orig.x * (1 - t) + exp.x * t;
+                frag.position.y = orig.y * (1 - t) + exp.y * t;
+                frag.position.z = orig.z * (1 - t) + exp.z * t;
+            });
+        }
+        
+        // --- El Takibi ve Jest (yumruk / açık) + Döndürme ---
+        let targetRotY = 0, targetRotX = 0;
+        let currentRotY = 0, currentRotX = 0;
+        let handDetected = false;
+        let currentGesture = "none"; // "fist", "open"
+        
+        const statusDiv = document.getElementById('statusMsg');
+        const gestureSpan = document.getElementById('gestureText');
+        
+        // MediaPipe Hands kurulumu
+        const videoElement = document.createElement('video');
+        videoElement.setAttribute('autoplay', '');
+        videoElement.setAttribute('playsinline', '');
+        videoElement.style.position = 'fixed';
+        videoElement.style.bottom = '-100vh';
+        videoElement.style.opacity = '0';
+        videoElement.style.pointerEvents = 'none';
+        document.body.appendChild(videoElement);
+        
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+        
+        // Jest algılama: parmak uçları ve boğumlar (yumuşak eşik)
+        function detectFistOrOpen(landmarks) {
+            // landmarks 21 nokta [x,y,z] normalize 0-1
+            const fingerTips = [4, 8, 12, 16, 20];
+            const fingerMCP = [2, 5, 9, 13, 17]; // taban noktaları yaklaşık
+            let closedCount = 0;
+            for (let i = 0; i < fingerTips.length; i++) {
+                const tipY = landmarks[fingerTips[i]][1];
+                const baseY = landmarks[fingerMCP[i]][1];
+                // Y ekseninde parmak ucu tabandan daha aşağıda ise (daha büyük Y) kapalı say
+                if (tipY > baseY + 0.035) closedCount++;
+            }
+            // başparmak özel: x eksenine göre
+            const thumbTip = landmarks[4];
+            const thumbBase = landmarks[2];
+            if (Math.abs(thumbTip[0] - thumbBase[0]) < 0.045) closedCount++;
+            
+            if (closedCount >= 4) return "fist";
+            else if (closedCount <= 2) return "open";
+            return "partial";
+        }
+        
+        hands.onResults((results) => {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                // El pozisyonu - avuç içi (0 noktası) ile küreyi döndür
+                const wrist = landmarks[0];
+                // normalize: x: 0-1 -> -1..1 , y: 0-1 -> -1..1 (ters çevirme yok)
+                let normX = (wrist.x * 2) - 1;
+                let normY = (wrist.y * 2) - 1;
+                // duyarlılık ince ve yumuşak
+                targetRotY = normX * 1.4;
+                targetRotX = normY * 0.9;
+                // sınırlama
+                targetRotX = Math.min(1.2, Math.max(-1.2, targetRotX));
+                targetRotY = Math.min(1.8, Math.max(-1.8, targetRotY));
+                
+                const gesture = detectFistOrOpen(landmarks);
+                if (gesture === "fist") {
+                    if (currentGesture !== "fist") {
+                        currentGesture = "fist";
+                        gestureSpan.innerHTML = "✊ yumruk • dağılıyor";
+                        gestureSpan.style.color = "#ffbfaa";
+                        statusDiv.innerHTML = "🌊 yumruk algılandı → küre inceliyor...";
+                        targetExplode = true;
+                    }
+                } 
+                else if (gesture === "open") {
+                    if (currentGesture !== "open") {
+                        currentGesture = "open";
+                        gestureSpan.innerHTML = "✋ açık el • birleşiyor";
+                        gestureSpan.style.color = "#b3ffcf";
+                        statusDiv.innerHTML = "🍃 açık el → küre toparlanıyor";
+                        targetExplode = false;
+                    }
+                }
+                else {
+                    if (currentGesture !== "partial") {
+                        currentGesture = "partial";
+                        gestureSpan.innerHTML = "🖐️ el takip • yumuşak dönüş";
+                        gestureSpan.style.color = "#ddf0ff";
+                        statusDiv.innerHTML = "✨ el hareketiyle küreyi döndür";
+                    }
+                }
+                handDetected = true;
+            } else {
+                if (handDetected) {
+                    handDetected = false;
+                    currentGesture = "none";
+                    gestureSpan.innerHTML = "🌿 el bekleniyor";
+                    gestureSpan.style.color = "#cce6ff";
+                    statusDiv.innerHTML = "🧘‍♀️ kameraya el gösterin";
+                }
+                // el yoksa dönüş hedefi yavaşça sıfırlanır (ferah)
+                targetRotX *= 0.98;
+                targetRotY *= 0.98;
+            }
+        });
+        
+        // Kamera başlatma (hata yönetimi ile kibar)
+        let cameraStarted = false;
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 } } });
+                videoElement.srcObject = stream;
+                await videoElement.play();
+                const cameraUtils = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await hands.send({ image: videoElement });
+                    },
+                    width: 640,
+                    height: 480
+                });
+                await cameraUtils.start();
+                statusDiv.innerHTML = "✅ kamera aktif • el hareketleri algılanıyor";
+                cameraStarted = true;
+            } catch (err) {
+                console.warn("Kamera hatası:", err);
+                statusDiv.innerHTML = "⚠️ kamera izni gerekli • fare ile döndürebilirsiniz";
+                gestureSpan.innerHTML = "🖱️ fare sürükleme aktif";
+                // fare yedeklemesi
+                setupMouseFallback();
+            }
+        }
+        
+        // Yedek fare kontrolü (kamera yoksa)
+        let mouseDrag = false;
+        let lastMouseX = 0, lastMouseY = 0;
+        function setupMouseFallback() {
+            const canvas = renderer.domElement;
+            canvas.style.cursor = 'grab';
+            canvas.addEventListener('mousedown', (e) => {
+                mouseDrag = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!mouseDrag) return;
+                const dx = e.clientX - lastMouseX;
+                const dy = e.clientY - lastMouseY;
+                targetRotY += dx * 0.008;
+                targetRotX += dy * 0.006;
+                targetRotX = Math.min(1.2, Math.max(-1.2, targetRotX));
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            });
+            window.addEventListener('mouseup', () => {
+                mouseDrag = false;
+                canvas.style.cursor = 'grab';
+            });
+        }
+        
+        // Manuel sıfırlama butonu (birleştir)
+        document.getElementById('resetButton').addEventListener('click', () => {
+            targetExplode = false;
+            gestureSpan.innerHTML = "🌀 birleştirildi";
+            gestureSpan.style.color = "#b5ffdd";
+            setTimeout(() => {
+                if (currentGesture !== "fist") gestureSpan.innerHTML = "🌿 hazır";
+            }, 1000);
+        });
+        
+        // --- Animasyon ve Geçiş ---
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.012;
+            
+            // Patlama / birleşme yumuşak geçişi (linear interpolasyon)
+            if (targetExplode && !isExploded) {
+                explosionProgress += 0.035;
+                if (explosionProgress >= 1) {
+                    explosionProgress = 1;
+                    isExploded = true;
+                    coreSphere.visible = false;
+                    fragments.forEach(f => f.visible = true);
+                }
+                updateExplosion(explosionProgress);
+            } 
+            else if (!targetExplode && isExploded) {
+                explosionProgress -= 0.035;
+                if (explosionProgress <= 0) {
+                    explosionProgress = 0;
+                    isExploded = false;
+                    coreSphere.visible = true;
+                    fragments.forEach(f => f.visible = false);
+                }
+                updateExplosion(explosionProgress);
+            }
+            
+            // Küre dönüşü (yumuşak, ferah)
+            currentRotX += (targetRotX - currentRotX) * 0.12;
+            currentRotY += (targetRotY - currentRotY) * 0.12;
+            if (coreSphere.visible) {
+                coreSphere.rotation.x = currentRotX;
+                coreSphere.rotation.y = currentRotY;
+            } else {
+                // parçacıklar da dönebilir ama isteğe bağlı, ferahlık için parçalar sabit durabilir.
+            }
+            
+            // dekoratif halkaların yumuşak hareketi
+            ring1.rotation.z = time * 0.2;
+            ring1.rotation.y = Math.sin(time * 0.3) * 0.1;
+            ring2.rotation.x = time * 0.25;
+            ring2.rotation.z = time * 0.15;
+            stars.rotation.y = time * 0.01;
+            
+            // Işık hafif renk oynaması (ferah)
+            const hue = 0.55 + Math.sin(time * 0.2) * 0.03;
+            rimLight.color.setHSL(hue, 0.7, 0.6);
+            
+            // kamera yumuşak takip
+            camera.lookAt(0, 0.2, 0);
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // başlat
+        initCamera();
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // küçük bir karşılama notu
+        console.log('🕊️ Ferah El Takibi Deneyimi | Yumruk / Açık el ile küre kontrolü');
+    </script>
+</body>
+</html>
