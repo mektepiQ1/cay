@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Küre - El Takibi ile Kontrol | Hand Tracking</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', sans-serif;
+        }
+
+        /* Bilgi paneli */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 20;
+            text-align: center;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .info-panel span {
+            color: #ffaa66;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 20;
+            border-left: 3px solid #0f0;
+            pointer-events: none;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: #ccc;
+            font-size: 11px;
+            z-index: 20;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .info-panel { font-size: 10px; top: 10px; left: 10px; right: 10px; padding: 8px 12px; }
+            .status-badge { font-size: 9px; bottom: 10px; left: 10px; }
+            .instruction { font-size: 8px; bottom: 10px; right: 10px; }
+        }
+
+        /* Kamera video'sunu gizliyoruz ama arka planda çalışacak */
+        #video-container {
+            position: fixed;
+            bottom: -1000px;
+            left: -1000px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-panel">
+        🖐️ <span>EL TAKİBİ AKTİF</span> | Elinizi hareket ettirerek küreyi döndürün | ✨ 3D Görünüm
+    </div>
+    <div class="status-badge" id="statusText">
+        📷 Kamera başlatılıyor...
+    </div>
+    <div class="instruction">
+        👆 Kameraya elinizi gösterin<br>
+        ↺ Sağa/sola/ yukarı hareket ettirin
+    </div>
+
+    <!-- Kamera video elementi (gizli) -->
+    <div id="video-container">
+        <video id="input-video" width="640" height="480" autoplay playsinline></video>
+    </div>
+
+    <!-- Three.js ve MediaPipe CDN -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "@mediapipe/hands": "https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js",
+                "@mediapipe/camera_utils": "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { Hands } from '@mediapipe/hands';
+        import { Camera } from '@mediapipe/camera_utils';
+
+        // --- Three.js Sahne Kurulumu (3D) ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050b1a);
+        scene.fog = new THREE.FogExp2(0x050b1a, 0.008);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.5, 5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Işıklandırma
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        
+        const mainLight = new THREE.PointLight(0xffaa88, 1.2);
+        mainLight.position.set(2, 3, 4);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        
+        const backLight = new THREE.PointLight(0x4466cc, 0.6);
+        backLight.position.set(-2, 1, -3);
+        scene.add(backLight);
+        
+        const colorLight = new THREE.PointLight(0xff66aa, 0.5);
+        colorLight.position.set(1, 2, 2);
+        scene.add(colorLight);
+        
+        // Dekoratif grid
+        const gridHelper = new THREE.GridHelper(15, 20, 0x88aaff, 0x335588);
+        gridHelper.position.y = -1.5;
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.3;
+        scene.add(gridHelper);
+        
+        // --- Ana Küre (Kontrol edilecek obje) ---
+        const sphereGeometry = new THREE.SphereGeometry(1.3, 128, 128);
+        const sphereMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3a86ff,
+            emissive: 0x001133,
+            roughness: 0.25,
+            metalness: 0.85,
+            emissiveIntensity: 0.5
+        });
+        const coreSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        coreSphere.castShadow = true;
+        scene.add(coreSphere);
+        
+        // Dekoratif halkalar
+        const ringGeo = new THREE.TorusGeometry(1.65, 0.05, 64, 300);
+        const ringMat = new THREE.MeshStandardMaterial({ color: 0xffaa55, emissive: 0x442200, emissiveIntensity: 0.5 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
+        
+        const ring2Geo = new THREE.TorusGeometry(1.85, 0.03, 64, 300);
+        const ring2Mat = new THREE.MeshStandardMaterial({ color: 0x77ccff, emissive: 0x004466, emissiveIntensity: 0.4 });
+        const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+        ring2.rotation.y = Math.PI / 3;
+        ring2.rotation.x = Math.PI / 3;
+        scene.add(ring2);
+        
+        // Parçacık sistemi (yıldız efekti)
+        const particleCount = 1500;
+        const particleGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            const radius = 2.2 + Math.random() * 4;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta) * 0.7;
+            positions[i*3+2] = radius * Math.cos(phi);
+        }
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.045, blending: THREE.AdditiveBlending, transparent: true });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
+        
+        // Arkaplan yıldızları
+        const starCount = 1200;
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPos[i*3] = (Math.random() - 0.5) * 200;
+            starPos[i*3+1] = (Math.random() - 0.5) * 100;
+            starPos[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+        const starsField = new THREE.Points(starGeo, starMat);
+        scene.add(starsField);
+        
+        // --- El Takibi için Değişkenler ---
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+        let currentRotationX = 0;
+        let currentRotationY = 0;
+        let handDetected = false;
+        let wristX = 0, wristY = 0; // Normalize edilmiş el pozisyonu (-1..1)
+        
+        const statusDiv = document.getElementById('statusText');
+        
+        // MediaPipe Hands başlatma
+        const videoElement = document.getElementById('input-video');
+        
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
+        });
+        
+        // El sonuçlarını işleme
+        hands.onResults((results) => {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                // Bilek noktası (index 0) ve işaret parmağı temel noktasını al
+                const wrist = landmarks[0];
+                const indexTip = landmarks[8];
+                
+                // Normalize: ekran koordinatlarını -1..1 arasına çevir (x için -1 sol, 1 sağ; y için -1 alt, 1 üst)
+                // MediaPipe landmark'lar 0..1 arası (x, y) normalize edilmiş
+                let normX = (wrist.x * 2) - 1;   // -1 .. 1
+                let normY = (wrist.y * 2) - 1;   // -1 .. 1
+                
+                // Tersine çevirme: doğal his için (sağa el gidince küre sağa dönsün)
+                targetRotationY = normX * 1.6;    // yatay eksende dönüş
+                targetRotationX = normY * 1.2;    // dikey eksende dönüş
+                
+                handDetected = true;
+                wristX = normX;
+                wristY = normY;
+                
+                statusDiv.innerHTML = "🖐️ El algılandı! | Küreyi hareket ettir";
+                statusDiv.style.color = "#aaffaa";
+                statusDiv.style.borderLeftColor = "#aaffaa";
+            } else {
+                handDetected = false;
+                statusDiv.innerHTML = "👋 El görünmüyor | Kameraya elinizi gösterin";
+                statusDiv.style.color = "#ffaa66";
+                statusDiv.style.borderLeftColor = "#ffaa66";
+                // El kaybolunca küre yavaşça merkeze döner (isteğe bağlı)
+                targetRotationX *= 0.98;
+                targetRotationY *= 0.98;
+            }
+        });
+        
+        // Kamerayı başlat
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+        
+        cameraUtils.start().then(() => {
+            statusDiv.innerHTML = "✅ Kamera aktif | Elinizi gösterin";
+            statusDiv.style.color = "#0f0";
+            console.log("Kamera başlatıldı, el takibi hazır");
+        }).catch((err) => {
+            console.error("Kamera hatası:", err);
+            statusDiv.innerHTML = "❌ Kamera izni verilmedi veya hata oluştu";
+            statusDiv.style.color = "#ff6666";
+        });
+        
+        // --- Animasyon döngüsü (kürenin rotation'ını güncelle) ---
+        let time = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            // Yumuşak geçiş (lerp) ile kürenin dönüşünü el pozisyonuna uydur
+            currentRotationX += (targetRotationX - currentRotationX) * 0.12;
+            currentRotationY += (targetRotationY - currentRotationY) * 0.12;
+            
+            // Kürenin dönüşünü uygula
+            coreSphere.rotation.x = currentRotationX;
+            coreSphere.rotation.y = currentRotationY;
+            
+            // Ekstra: dekoratif halkalar ve parçacıklar otomatik dönsün (görsel zenginlik)
+            ring.rotation.z = time * 0.5;
+            ring.rotation.x = Math.sin(time * 0.4) * 0.2 + Math.PI/2;
+            ring2.rotation.y = time * 0.4;
+            ring2.rotation.x = time * 0.3;
+            particles.rotation.y = time * 0.08;
+            particles.rotation.x = Math.sin(time * 0.1) * 0.1;
+            starsField.rotation.y = time * 0.02;
+            
+            // Dinamik ışık efekti
+            colorLight.color.setHSL(0.55 + Math.sin(time) * 0.05, 1, 0.6);
+            
+            // Kamera hafifçe sallanabilir (3D hissi)
+            camera.position.x += (0 - camera.position.x) * 0.05;
+            camera.position.y += (Math.sin(time * 0.2) * 0.05 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0.2, 0);
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Pencere yeniden boyutlandırma
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // El takibinin daha hassas olması için ekstra: işaret parmağı pozisyonu da eklenebilir, 
+        // ama bilek hareketi yeterli ve kullanışlı.
+        console.log("3D Küre + El Takibi sistemi hazır | Hand tracking aktif");
+    </script>
+</body>
+</html>
