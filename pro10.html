@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="description" content="Akademik Asistan Pro - Yapay Zeka Destekli Akıllı Ders Programı ve Öğrenme Analiz Sistemi">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Akademik Asistan Pro | YZ Destekli Akıllı Ders Programı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #818cf8;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray-50: #f9fafb;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --border-radius-sm: 0.375rem;
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .app-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            background: white;
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        /* Navbar */
+        .main-navbar {
+            display: flex;
+            background: white;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            gap: 0.25rem;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab i {
+            font-size: 1rem;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+            border-bottom-color: var(--gray-300);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Paneller */
+        .content-panel {
+            display: none;
+            animation: fadeInUp 0.25s ease;
+        }
+
+        .content-panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Kartlar ve istatistikler */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-500);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .stat-value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        /* Zaman ayarları */
+        .time-settings-panel {
+            background: white;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Tablo */
+        .timetable-wrapper {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 60vh;
+            padding: 1rem;
+        }
+
+        .timetable-grid {
+            display: grid;
+            grid-template-columns: 70px repeat(7, minmax(110px, 1fr));
+            gap: 1px;
+            background: var(--gray-200);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            min-width: 800px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .timetable-grid > div {
+            background: white;
+            padding: 0.5rem 0.25rem;
+            font-size: 0.75rem;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-header-corner,
+        .grid-day-header,
+        .grid-time-cell {
+            font-weight: 600;
+            background: var(--gray-50);
+            color: var(--gray-700);
+        }
+
+        .grid-day-header {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .grid-lesson-slot {
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 0.25rem;
+        }
+
+        .grid-lesson-slot:hover {
+            background: var(--gray-100);
+            transform: scale(1.01);
+            z-index: 2;
+        }
+
+        .lesson-item {
+            border-left: 3px solid;
+            border-radius: var(--border-radius-sm);
+            padding: 0.375rem;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            box-shadow: var(--shadow-xs);
+            font-size: 0.7rem;
+            gap: 0.25rem;
+        }
+
+        .note-badge {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 0.125rem 0.375rem;
+            border-radius: 1rem;
+            font-size: 0.6rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            width: fit-content;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty-lesson {
+            color: var(--gray-400);
+            font-size: 0.8rem;
+        }
+
+        /* Butonlar */
+        .btn-primary, .btn-secondary, .btn-danger, .btn-outline {
+            padding: 0.375rem 0.875rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-400);
+        }
+
+        .btn-danger {
+            background: white;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--gray-50);
+        }
+
+        /* Modaller */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: var(--border-radius-xl);
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-large {
+            max-width: 850px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-300);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.25rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.2s;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--gray-800);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            z-index: 3000;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Geçmiş kartları */
+        .history-container {
+            padding: 1.5rem;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+        }
+
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Analiz */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .analytics-card h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+        }
+
+        /* İstatistiksel Analizler için 2'li kart grid sistemi */
+        .analytics-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .analytics-stat-card {
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            padding: 0.85rem 0.75rem;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+            box-shadow: var(--shadow-xs);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .analytics-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+            background: white;
+        }
+        .analytics-stat-card .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-weight: 500;
+        }
+        .analytics-stat-card .stat-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            word-break: break-word;
+            line-height: 1.3;
+        }
+        .analytics-stat-card .stat-value-small {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-top: 0.2rem;
+        }
+        .analytics-stat-card .highlight {
+            color: var(--primary-dark);
+            background: rgba(79, 70, 229, 0.1);
+            padding: 0.1rem 0.25rem;
+            border-radius: 0.3rem;
+            display: inline-block;
+            font-weight: 600;
+        }
+        @media (max-width: 640px) {
+            .analytics-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Program detay modal iç tablo */
+        .program-detail-table {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .program-detail-table .timetable-grid {
+            min-width: 700px;
+        }
+
+        .program-detail-table .lesson-card-inner {
+            border-left: 2px solid;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 0.75rem;
+            border-top: 1px solid var(--gray-200);
+            font-size: 0.7rem;
+            color: var(--gray-500);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(80px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 0.5rem;
+            }
+            .stats-grid {
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+            .time-settings-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--gray-200);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <div class="app-container">
+        <div class="main-navbar">
+            <div class="nav-tab active" data-tab="create"><i class="fas fa-calendar-alt"></i> Program</div>
+            <div class="nav-tab" data-tab="history"><i class="fas fa-history"></i> Geçmiş</div>
+            <div class="nav-tab" data-tab="compare"><i class="fas fa-chart-line"></i> Karşılaştır</div>
+            <div class="nav-tab" data-tab="analytics"><i class="fas fa-chart-pie"></i> Analiz</div>
+            <div class="nav-tab" data-tab="settings"><i class="fas fa-cog"></i> Ayarlar</div>
+        </div>
+        
+        <!-- Create Panel -->
+        <div class="content-panel active-panel" id="createPanel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title"><i class="fas fa-clock"></i> Toplam Ders</div>
+                    <div class="stat-value" id="totalHoursStat">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title"><i class="fas fa-question-circle"></i> Toplam Soru</div>
+                    <div class="stat-value" id="totalQuestionsStat">0</div>
+                </div>
+            </div>
+            <div class="time-settings-panel">
+                <div><i class="far fa-clock"></i> <strong>Zaman Dilimleri</strong></div>
+                <div id="timeSlotsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-secondary" id="addTimeSlotBtn"><i class="fas fa-plus"></i> Ekle</button>
+                    <button class="btn-secondary" id="resetTimeSlotsBtn"><i class="fas fa-undo"></i> Sıfırla</button>
+                </div>
+            </div>
+            <div class="timetable-wrapper"><div class="timetable-grid" id="timetableGrid"></div></div>
+            <div style="padding: 1rem; display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; border-top: 1px solid var(--gray-200);">
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-secondary" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Temizle</button>
+                    <button class="btn-secondary" id="quickTemplateBtn"><i class="fas fa-magic"></i> Hızlı Şablon</button>
+                    <button class="btn-secondary" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+                </div>
+                <button class="btn-primary" id="saveProgramBtn"><i class="fas fa-archive"></i> Kaydet</button>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="content-panel" id="historyPanel">
+            <div class="stats-grid" style="padding-bottom: 0;">
+                <div class="stat-card"><div class="stat-title"><i class="fas fa-archive"></i> Arşivlenen</div><div class="stat-value" id="archivedCount">0</div></div>
+                <div class="stat-card"><div class="stat-title"><i class="fas fa-star"></i> Favoriler</div><div class="stat-value" id="favoriteCount">0</div></div>
+                <div class="stat-card"><div class="stat-title"><i class="fas fa-calendar-week"></i> Son Program</div><div class="stat-value" id="lastProgramDate">-</div></div>
+            </div>
+            <div class="history-container" id="historyContainer"></div>
+        </div>
+
+        <!-- Compare Panel -->
+        <div class="content-panel" id="comparePanel">
+            <div style="padding: 1.5rem;">
+                <h3 style="margin-bottom: 0.75rem; font-size: 1.125rem;"><i class="fas fa-chart-line"></i> Program Karşılaştırma</h3>
+                <p style="margin-bottom: 1rem; font-size: 0.75rem; color: var(--gray-600);">Karşılaştırmak istediğiniz programları seçin (sınırsız)</p>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+                    <button class="btn-secondary" id="selectAllCompareBtn"><i class="fas fa-check-double"></i> Tümünü Seç</button>
+                    <button class="btn-secondary" id="clearAllCompareBtn"><i class="fas fa-times"></i> Temizle</button>
+                </div>
+                <div id="compareProgramsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; max-height: 360px; overflow-y: auto;"></div>
+                <div><button class="btn-primary" id="analyzeCombinedBtn" style="background: var(--success);"><i class="fas fa-chart-pie"></i> Analiz Yap</button></div>
+            </div>
+        </div>
+
+        <!-- Analytics Panel -->
+        <div class="content-panel" id="analyticsPanel">
+            <div class="analytics-grid">
+                <div class="analytics-card"><h3><i class="fas fa-chart-bar"></i> Haftalık Çalışma</h3><canvas id="weeklyChart" style="max-height: 200px;"></canvas></div>
+                <div class="analytics-card"><h3><i class="fas fa-chart-line"></i> Ders Bazlı Verimlilik</h3><canvas id="performanceChart" style="max-height: 200px;"></canvas></div>
+                <div class="analytics-card"><h3><i class="fas fa-chart-pie"></i> Konu Bazlı Soru Dağılımı</h3><canvas id="topicChart" style="max-height: 220px;"></canvas></div>
+                
+                <!-- İstatistiksel Analizler - 2'li kart görünümü (Günlük Dağılım kartı kaldırıldı) -->
+                <div class="analytics-card" id="textAnalyticsCard">
+                    <h3><i class="fas fa-chart-simple"></i> İstatistiksel Analizler</h3>
+                    <div id="textAnalyticsContent" class="analytics-stats-grid">
+                        Veriler hesaplanıyor...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="content-panel" id="settingsPanel">
+            <div style="padding: 1.5rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.125rem;"><i class="fas fa-cog"></i> Ayarlar</h3>
+                <div class="stat-card" style="margin-bottom: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.875rem;"><i class="fas fa-palette"></i> Tema</h4>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-secondary" onclick="changeTheme('light')">Açık</button>
+                        <button class="btn-secondary" onclick="changeTheme('dark')">Koyu</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.875rem;"><i class="fas fa-database"></i> Veri Yönetimi</h4>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn-secondary" onclick="exportAllData()"><i class="fas fa-download"></i> Dışa Aktar</button>
+                        <button class="btn-secondary" onclick="importData()"><i class="fas fa-upload"></i> İçe Aktar</button>
+                        <button class="btn-danger" onclick="clearAllData()"><i class="fas fa-trash"></i> Tümünü Sil</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer><i class="fas fa-brain"></i> Akademik Asistan Pro — Akıllı Ders Programınız</footer>
+    </div>
+</div>
+
+<!-- Modals (Aynı yapı) -->
+<div id="lessonModal" class="modal"><div class="modal-card"><h3 id="modalTitle" style="font-size: 1.25rem; margin-bottom: 1rem;">Ders Bilgileri</h3><input type="hidden" id="modalDay"><input type="hidden" id="modalHour"><div class="form-group"><label>Ders Adı</label><input type="text" id="lessonName" placeholder="Örn: Matematik"></div><div class="form-group"><label>Konu Adı</label><input type="text" id="lessonTopic" placeholder="Örn: Türev, Fonksiyonlar..."></div><div class="form-group"><label>Kategori</label><select id="lessonCategory"><option value="sayısal">Sayısal</option><option value="sözel">Sözel</option><option value="eşit ağırlık">Eşit Ağırlık</option><option value="dil">Dil</option></select></div><div class="form-group"><label>Notlar</label><textarea id="lessonNote" rows="2" placeholder="Önemli notlar..."></textarea></div><div class="form-group"><label>Çözülen Soru</label><input type="number" id="questionCount" value="0"></div><div class="form-group"><label>Hedef Soru</label><input type="number" id="targetQuestion" value="50"></div><div class="form-group"><label>Renk</label><input type="color" id="lessonColor" value="#4f46e5"></div><div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;"><button class="btn-secondary" id="closeModalBtn">İptal</button><button class="btn-primary" id="saveLessonBtn">Kaydet</button><button class="btn-danger" id="deleteLessonBtn" style="display:none;">Sil</button></div></div></div>
+<div id="programDetailModal" class="modal"><div class="modal-card modal-large"><h3>Program Detayı</h3><div id="programDetailContent"></div><div style="margin-top:1rem;"><button class="btn-secondary" id="closeDetailModalBtn">Kapat</button></div></div></div>
+<div id="compareResultModal" class="modal"><div class="modal-card modal-xl"><h3>Karşılaştırma Sonuçları</h3><div id="compareResultContent"></div><div style="margin-top:1rem;"><button class="btn-primary" onclick="closeCompareModal()">Kapat</button></div></div></div>
+<div id="saveProgramNameModal" class="modal"><div class="modal-card"><h3><i class="fas fa-save"></i> Programı Kaydet</h3><div class="form-group"><label>Program Adı</label><input type="text" id="programNameInput" placeholder="Program adı giriniz..."></div><div style="display: flex; gap: 0.75rem; justify-content: flex-end;"><button class="btn-secondary" id="cancelSaveNameBtn">İptal</button><button class="btn-primary" id="confirmSaveNameBtn">Kaydet</button></div></div></div>
+<div id="editHistoryLessonModal" class="modal"><div class="modal-card"><h3 id="editHistoryModalTitle" style="font-size: 1.25rem;">Dersi Düzenle</h3><input type="hidden" id="editHistoryProgramId"><input type="hidden" id="editHistoryDay"><input type="hidden" id="editHistoryHour"><div class="form-group"><label>Ders Adı</label><input type="text" id="editHistoryLessonName"></div><div class="form-group"><label>Konu Adı</label><input type="text" id="editHistoryLessonTopic"></div><div class="form-group"><label>Kategori</label><select id="editHistoryLessonCategory"><option value="sayısal">Sayısal</option><option value="sözel">Sözel</option><option value="eşit ağırlık">Eşit Ağırlık</option><option value="dil">Dil</option></select></div><div class="form-group"><label>Notlar</label><textarea id="editHistoryLessonNote" rows="2"></textarea></div><div class="form-group"><label>Çözülen Soru</label><input type="number" id="editHistoryQuestionCount"></div><div class="form-group"><label>Hedef Soru</label><input type="number" id="editHistoryTargetQuestion"></div><div class="form-group"><label>Renk</label><input type="color" id="editHistoryLessonColor"></div><div style="display: flex; gap: 0.75rem; justify-content: flex-end;"><button class="btn-secondary" id="closeEditHistoryModalBtn">İptal</button><button class="btn-primary" id="saveEditHistoryLessonBtn">Güncelle</button></div></div></div>
+
+<script>
+    // ==================== STATE ====================
+    const DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+    let TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
+    let timetable = [];
+    let programHistory = [];
+    let selectedComparePrograms = [];
+    let weeklyChart = null, performanceChart = null, topicChart = null;
+    let currentEditDay = -1, currentEditHour = -1;
+    let currentEditHistoryProgramId = null, currentEditHistoryDay = null, currentEditHistoryHour = null;
+
+    function initTimetable() { timetable = DAYS.map(() => Array(TIME_SLOTS.length).fill(null)); }
+    function showToast(msg, type = "success") { let existing = document.querySelector(".toast-msg"); if (existing) existing.remove(); let div = document.createElement("div"); div.className = "toast-msg"; div.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${msg}`; div.style.background = type === 'success' ? '#10b981' : '#ef4444'; document.body.appendChild(div); setTimeout(() => div.remove(), 2200); }
+    function escapeHtml(str) { if (!str) return ""; return str.replace(/[&<>]/g, (m) => m === "&" ? "&amp;" : m === "<" ? "&lt;" : "&gt;"); }
+    function formatDate(date) { return new Date(date).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short', day: 'numeric' }); }
+
+    function updateStats() { let totalHours = 0, totalQuestions = 0; for (let d = 0; d < DAYS.length; d++) for (let h = 0; h < TIME_SLOTS.length; h++) { let l = timetable[d]?.[h]; if (l && l.name) { totalHours++; totalQuestions += l.questionCount || 0; } } document.getElementById("totalHoursStat").innerHTML = totalHours; document.getElementById("totalQuestionsStat").innerHTML = totalQuestions; }
+    function renderTimetable() { 
+        const grid = document.getElementById("timetableGrid");
+        grid.innerHTML = "";
+        const cornerDiv = document.createElement("div"); cornerDiv.className = "grid-header-corner"; cornerDiv.innerHTML = `<i class="fas fa-clock"></i> Saat`; grid.appendChild(cornerDiv);
+        for (let d = 0; d < DAYS.length; d++) { const dh = document.createElement("div"); dh.className = "grid-day-header"; dh.innerHTML = `<i class="fas fa-calendar-day"></i> ${DAYS[d]}`; grid.appendChild(dh); }
+        for (let h = 0; h < TIME_SLOTS.length; h++) {
+            const timeCell = document.createElement("div"); timeCell.className = "grid-time-cell"; timeCell.innerHTML = `<strong>${escapeHtml(TIME_SLOTS[h])}</strong>`; grid.appendChild(timeCell);
+            for (let d = 0; d < DAYS.length; d++) {
+                const lesson = timetable[d]?.[h];
+                const slotDiv = document.createElement("div"); slotDiv.className = "grid-lesson-slot";
+                if (lesson && lesson.name) {
+                    const inner = document.createElement("div"); inner.className = "lesson-item"; inner.style.borderLeftColor = lesson.color;
+                    const progress = ((lesson.questionCount || 0) / (lesson.targetQuestion || 50)) * 100;
+                    let noteHtml = ''; if (lesson.note && lesson.note.trim()) noteHtml = `<div class="note-badge"><i class="fas fa-sticky-note"></i> ${escapeHtml(lesson.note.substring(0, 25))}${lesson.note.length > 25 ? '..' : ''}</div>`;
+                    inner.innerHTML = `<div style="display: flex; justify-content: space-between;"><strong style="font-size:0.7rem;">${escapeHtml(lesson.name)}</strong><button class="delete-lesson" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash-alt" style="font-size:0.65rem;"></i></button></div>${noteHtml}<div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,progress)}%; background:${lesson.color};"></div></div><div style="font-size:0.6rem;">${lesson.questionCount || 0}/${lesson.targetQuestion || 50}</div>`;
+                    const delBtn = inner.querySelector(".delete-lesson"); delBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteLesson(d, h); });
+                    slotDiv.appendChild(inner);
+                    slotDiv.addEventListener("click", (e) => { if (!e.target.closest(".delete-lesson")) openModal(d, h, lesson); });
+                } else { slotDiv.innerHTML = `<div class="empty-lesson"><i class="far fa-plus-square"></i></div>`; slotDiv.addEventListener("click", () => openModal(d, h, null)); }
+                grid.appendChild(slotDiv);
+            }
+        }
+    }
+    function deleteLesson(day, hour) { if (timetable[day]?.[hour]) { timetable[day][hour] = null; renderTimetable(); updateStats(); updateAnalytics(false); showToast("Ders silindi"); } }
+    function saveLesson(day, hour, data) { if (!data.name.trim()) return showToast("Ders adı gerekli", "error"); if (!timetable[day]) timetable[day] = Array(TIME_SLOTS.length).fill(null); timetable[day][hour] = { name: data.name.trim(), topic: data.topic?.trim() || "", note: data.note?.trim() || "", color: data.color || "#4f46e5", questionCount: parseInt(data.questionCount) || 0, targetQuestion: parseInt(data.targetQuestion) || 50, category: data.category || "sayısal", date: new Date().toISOString() }; renderTimetable(); updateStats(); updateAnalytics(false); showToast("Ders kaydedildi"); }
+    function openModal(day, hour, lesson) { currentEditDay = day; currentEditHour = hour; document.getElementById("modalTitle").innerHTML = lesson ? `<i class="fas fa-edit"></i> ${DAYS[day]} ${TIME_SLOTS[hour]}` : `<i class="fas fa-plus-circle"></i> Yeni Ders`; document.getElementById("lessonName").value = lesson?.name || ""; document.getElementById("lessonTopic").value = lesson?.topic || ""; document.getElementById("lessonNote").value = lesson?.note || ""; document.getElementById("lessonColor").value = lesson?.color || "#4f46e5"; document.getElementById("questionCount").value = lesson?.questionCount || 0; document.getElementById("targetQuestion").value = lesson?.targetQuestion || 50; document.getElementById("lessonCategory").value = lesson?.category || "sayısal"; document.getElementById("deleteLessonBtn").style.display = lesson ? "inline-flex" : "none"; document.getElementById("lessonModal").style.display = "flex"; }
+    function closeModal() { document.getElementById("lessonModal").style.display = "none"; currentEditDay = -1; }
+    function renderProgramTimetableHTML(prog, progId) { const days = DAYS; const slots = prog.timeSlots || TIME_SLOTS; const progTimetable = prog.timetable; if (!progTimetable) return "<p>Zaman çizelgesi verisi yok.</p>"; let html = `<div class="program-detail-table"><div class="timetable-grid" style="min-width:650px;">`; html += `<div class="grid-header-corner"><i class="fas fa-clock"></i> Saat</div>`; for (let d = 0; d < days.length; d++) html += `<div class="grid-day-header"><i class="fas fa-calendar-day"></i> ${days[d]}</div>`; for (let h = 0; h < slots.length; h++) { html += `<div class="grid-time-cell"><strong>${escapeHtml(slots[h])}</strong></div>`; for (let d = 0; d < days.length; d++) { const lesson = progTimetable[d]?.[h]; if (lesson && lesson.name) { const progress = ((lesson.questionCount || 0) / (lesson.targetQuestion || 50)) * 100; html += `<div class="lesson-card-clickable" data-prog-id="${progId}" data-day="${d}" data-hour="${h}" style="background:white; padding:0px; border-right:1px solid #000; border-bottom:1px solid #000; min-height:34px; cursor:pointer; display:flex;"><div class="lesson-card-inner" style="border-left:2px solid ${lesson.color};"><div class="lesson-name"><strong>${escapeHtml(lesson.name)}</strong> ${lesson.topic ? `<span style="font-size:0.6rem; opacity:0.7;">(${escapeHtml(lesson.topic)})</span>` : ''}</div><div class="lesson-stats" style="font-size:0.65rem;">📊 ${lesson.questionCount || 0}/${lesson.targetQuestion || 50}</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,progress)}%; background:${lesson.color};"></div></div>${lesson.note ? `<div class="note-badge" style="font-size:0.55rem;"><i class="fas fa-sticky-note"></i> ${escapeHtml(lesson.note.substring(0, 28))}</div>` : ''}</div></div>`; } else { html += `<div style="background:white; padding:1px; border-right:1px solid #000; border-bottom:1px solid #000; display:flex; align-items:center; justify-content:center; color:var(--gray-400); min-height:34px;"><i class="far fa-clock"></i></div>`; } } } html += `</div></div>`; return html; }
+    function showProgramDetail(prog) { let modal = document.getElementById("programDetailModal"); let contentDiv = document.getElementById("programDetailContent"); let totalDers = prog.lessonCount; let totalSoru = 0, totalHedef = 0; if (prog.timetable) for (let d=0; d<DAYS.length; d++) { let row = prog.timetable[d]; if (row) for (let l of row) if(l) { totalSoru += l.questionCount || 0; totalHedef += l.targetQuestion || 0; } } let tamamlamaYuzde = totalHedef > 0 ? Math.min(100, Math.floor((totalSoru / totalHedef) * 100)) : 0; let statsHtml = `<div style="margin-bottom:0.75rem; font-size:0.875rem;"><strong>${escapeHtml(prog.name)}</strong> &nbsp;| ${formatDate(prog.date)}<br>📚 Toplam Ders: ${totalDers} &nbsp; 📝 Toplam Soru: ${totalSoru} &nbsp; 🎯 Hedef Tamamlama: %${tamamlamaYuzde}</div>`; contentDiv.innerHTML = statsHtml + renderProgramTimetableHTML(prog, prog.id); modal.style.display = "flex"; setTimeout(() => { document.querySelectorAll("#programDetailContent .lesson-card-clickable").forEach(card => { card.removeEventListener("click", historyLessonClickHandler); card.addEventListener("click", historyLessonClickHandler); }); }, 20); }
+    function historyLessonClickHandler(e) { let target = e.currentTarget; let progId = parseInt(target.dataset.progId); let day = parseInt(target.dataset.day); let hour = parseInt(target.dataset.hour); let program = programHistory.find(p => p.id === progId); if (!program) return showToast("Program bulunamadı", "error"); let lesson = program.timetable?.[day]?.[hour]; if (!lesson) return showToast("Ders bilgisi alınamadı", "error"); openEditHistoryModal(progId, day, hour, lesson); }
+    function openEditHistoryModal(programId, day, hour, lessonData) { currentEditHistoryProgramId = programId; currentEditHistoryDay = day; currentEditHistoryHour = hour; document.getElementById("editHistoryLessonName").value = lessonData.name || ""; document.getElementById("editHistoryLessonTopic").value = lessonData.topic || ""; document.getElementById("editHistoryLessonNote").value = lessonData.note || ""; document.getElementById("editHistoryLessonColor").value = lessonData.color || "#4f46e5"; document.getElementById("editHistoryQuestionCount").value = lessonData.questionCount || 0; document.getElementById("editHistoryTargetQuestion").value = lessonData.targetQuestion || 50; document.getElementById("editHistoryLessonCategory").value = lessonData.category || "sayısal"; document.getElementById("editHistoryModalTitle").innerHTML = `<i class="fas fa-edit"></i> Düzenle: ${DAYS[day]} ${TIME_SLOTS[hour] || "?"}`; document.getElementById("editHistoryLessonModal").style.display = "flex"; }
+    function saveEditedHistoryLesson() { if (currentEditHistoryProgramId === null) return showToast("Hata", "error"); let program = programHistory.find(p => p.id === currentEditHistoryProgramId); if (!program) return showToast("Program kayboldu", "error"); if (!program.timetable[currentEditHistoryDay]) program.timetable[currentEditHistoryDay] = Array(TIME_SLOTS.length).fill(null); const updatedLesson = { name: document.getElementById("editHistoryLessonName").value.trim(), topic: document.getElementById("editHistoryLessonTopic").value.trim(), note: document.getElementById("editHistoryLessonNote").value, color: document.getElementById("editHistoryLessonColor").value, questionCount: parseInt(document.getElementById("editHistoryQuestionCount").value) || 0, targetQuestion: parseInt(document.getElementById("editHistoryTargetQuestion").value) || 50, category: document.getElementById("editHistoryLessonCategory").value, date: new Date().toISOString() }; if (!updatedLesson.name) { showToast("Ders adı boş olamaz", "error"); return; } program.timetable[currentEditHistoryDay][currentEditHistoryHour] = updatedLesson; let totalLessonCount = 0; for (let d=0; d<DAYS.length; d++) for (let h=0; h<(program.timeSlots?.length || TIME_SLOTS.length); h++) if(program.timetable[d]?.[h]?.name) totalLessonCount++; program.lessonCount = totalLessonCount; programHistory = programHistory.map(p => p.id === program.id ? program : p); renderHistory(); updateArchiveStats(); renderCompareList(); showProgramDetail(program); closeEditHistoryModal(); showToast("Ders güncellendi", "success"); }
+    function closeEditHistoryModal() { document.getElementById("editHistoryLessonModal").style.display = "none"; currentEditHistoryProgramId = null; }
+    function updateTopicChart(lessonsList) { let topicMap = new Map(); for (let item of lessonsList) { let lesson = item.lesson; let topic = lesson.topic && lesson.topic.trim() !== "" ? lesson.topic.trim() : null; if (topic) { let qCount = lesson.questionCount || 0; if (qCount > 0) topicMap.set(topic, (topicMap.get(topic) || 0) + qCount); } } if (topicMap.size === 0) { if (topicChart) topicChart.destroy(); const ctx = document.getElementById('topicChart').getContext('2d'); topicChart = new Chart(ctx, { type: 'pie', data: { labels: ['Konu verisi yok'], datasets: [{ data: [1], backgroundColor: ['#cbd5e1'] }] }, options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } } }); return; } const labels = Array.from(topicMap.keys()); const data = Array.from(topicMap.values()); if (topicChart) topicChart.destroy(); const ctx = document.getElementById('topicChart').getContext('2d'); topicChart = new Chart(ctx, { type: 'pie', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec489a', '#06b6d4', '#84cc16'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } } }); }
+    function collectLessonsFromTimetable(tt, slots) { let lessons = []; for (let d=0; d<DAYS.length; d++) for (let h=0; h<slots.length; h++) { let l = tt[d]?.[h]; if (l && l.name) lessons.push({ lesson: l, dayIndex: d }); } return lessons; }
+    
+    // GÜNCELLENMİŞ: İstatistiksel Analizler bölümü 2'li kartlar halinde, Günlük Dağılım kartı kaldırıldı
+    function updateTextAnalytics(weeklyData, weeklyQuestions, lessonPerf, topicMap, totalHours, totalQuestions) {
+        const container = document.getElementById("textAnalyticsContent");
+        if (!container) return;
+        if (totalHours === 0 && totalQuestions === 0) {
+            container.innerHTML = `<div class="analytics-stat-card" style="grid-column:span 2; text-align:center;"><i class="fas fa-info-circle"></i> Henüz yeterli ders verisi yok. Program oluşturun veya analiz için programları karşılaştırın.</div>`;
+            return;
+        }
+        let maxQuestionsDay = "", maxQuestions = -1;
+        for (let i = 0; i < DAYS.length; i++) {
+            if (weeklyQuestions[i] > maxQuestions) { maxQuestions = weeklyQuestions[i]; maxQuestionsDay = DAYS[i]; }
+        }
+        let bestPerf = { name: "", value: -1 };
+        let worstPerf = { name: "", value: Infinity };
+        for (let [name, perf] of lessonPerf.entries()) {
+            if (perf.hours === 0) continue;
+            let efficiency = perf.questions / perf.hours;
+            if (efficiency > bestPerf.value) { bestPerf.value = efficiency; bestPerf.name = name; }
+            if (efficiency < worstPerf.value) { worstPerf.value = efficiency; worstPerf.name = name; }
+        }
+        let mostTopic = "", mostCount = -1, leastTopic = "", leastCount = Infinity;
+        for (let [topic, count] of topicMap.entries()) {
+            if (count > mostCount) { mostCount = count; mostTopic = topic; }
+            if (count < leastCount) { leastCount = count; leastTopic = topic; }
+        }
+        let cardsHtml = "";
+        // Kart 1: Genel Toplam
+        cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-chart-simple"></i> Genel Toplam</div><div class="stat-value">📚 ${totalHours} ders saati</div><div class="stat-value-small">📝 ${totalQuestions} soru çözüldü</div></div>`;
+        // Kart 2: En çok soru çözülen gün
+        cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-question-circle"></i> En Çok Soru Günü</div><div class="stat-value">📌 ${maxQuestionsDay}</div><div class="stat-value-small">${maxQuestions} soru çözüldü</div></div>`;
+        // Kart 3: En verimli ders
+        if (bestPerf.name && bestPerf.value > 0) {
+            cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-trophy"></i> En Verimli Ders</div><div class="stat-value">🏆 ${escapeHtml(bestPerf.name)}</div><div class="stat-value-small">${bestPerf.value.toFixed(1)} soru/saat</div></div>`;
+        } else { cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-trophy"></i> Verimlilik Lideri</div><div class="stat-value">-</div><div class="stat-value-small">Yeterli veri yok</div></div>`; }
+        // Kart 4: Gelişim Alanı (en az verimli ders)
+        if (worstPerf.name && worstPerf.value !== Infinity) {
+            cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-exclamation-triangle"></i> Gelişim Alanı</div><div class="stat-value">⚠️ ${escapeHtml(worstPerf.name)}</div><div class="stat-value-small">${worstPerf.value.toFixed(1)} soru/saat</div></div>`;
+        } else { cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-exclamation-triangle"></i> Gelişim Alanı</div><div class="stat-value">-</div><div class="stat-value-small">Veri yetersiz</div></div>`; }
+        // Kart 5: En çok soru çözülen konu
+        if (mostTopic) {
+            cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-book-open"></i> En Yoğun Konu</div><div class="stat-value">📘 ${escapeHtml(mostTopic)}</div><div class="stat-value-small">${mostCount} soru çözüldü</div></div>`;
+        } else { cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-book-open"></i> Konu Analizi</div><div class="stat-value">-</div><div class="stat-value-small">Konu bazlı veri yok</div></div>`; }
+        // Kart 6: Az çalışılan konu (varsa)
+        if (leastTopic && mostTopic !== leastTopic && leastCount !== Infinity) {
+            cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-chart-line"></i> Az Çalışılan Konu</div><div class="stat-value">📉 ${escapeHtml(leastTopic)}</div><div class="stat-value-small">${leastCount} soru</div></div>`;
+        } else if(mostTopic) {
+            cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-chart-line"></i> Çalışma Dengesi</div><div class="stat-value">✅ Tüm konular dengeli</div></div>`;
+        } else { cardsHtml += `<div class="analytics-stat-card"><div class="stat-label"><i class="fas fa-chart-line"></i> Konu Detayı</div><div class="stat-value">-</div></div>`; }
+        container.innerHTML = cardsHtml;
+    }
+    
+    function updateAnalytics(useCombined = false, combinedLessons = null) {
+        let weeklyData = Array(7).fill(0), weeklyQuestions = Array(7).fill(0);
+        let lessonPerf = new Map();
+        let topicMap = new Map();
+        let allLessons = [];
+        let totalHours = 0, totalQuestions = 0;
+        if (useCombined && combinedLessons) {
+            allLessons = combinedLessons;
+            for (let item of combinedLessons) {
+                weeklyData[item.dayIndex]++; weeklyQuestions[item.dayIndex] += item.lesson.questionCount || 0;
+                totalHours++; totalQuestions += item.lesson.questionCount || 0;
+                let name = item.lesson.name;
+                if (!lessonPerf.has(name)) lessonPerf.set(name, { hours: 0, questions: 0 });
+                let p = lessonPerf.get(name); p.hours++; p.questions += item.lesson.questionCount || 0;
+                let topic = item.lesson.topic?.trim();
+                if (topic && (item.lesson.questionCount || 0) > 0) topicMap.set(topic, (topicMap.get(topic) || 0) + (item.lesson.questionCount || 0));
+            }
+        } else {
+            let lessonsFromCurrent = collectLessonsFromTimetable(timetable, TIME_SLOTS);
+            allLessons = lessonsFromCurrent;
+            for (let item of lessonsFromCurrent) {
+                weeklyData[item.dayIndex]++; weeklyQuestions[item.dayIndex] += item.lesson.questionCount || 0;
+                totalHours++; totalQuestions += item.lesson.questionCount || 0;
+                let name = item.lesson.name;
+                if (!lessonPerf.has(name)) lessonPerf.set(name, { hours: 0, questions: 0 });
+                let p = lessonPerf.get(name); p.hours++; p.questions += item.lesson.questionCount || 0;
+                let topic = item.lesson.topic?.trim();
+                if (topic && (item.lesson.questionCount || 0) > 0) topicMap.set(topic, (topicMap.get(topic) || 0) + (item.lesson.questionCount || 0));
+            }
+        }
+        if (weeklyChart) weeklyChart.destroy();
+        const ctx1 = document.getElementById('weeklyChart').getContext('2d');
+        weeklyChart = new Chart(ctx1, { type: 'bar', data: { labels: DAYS, datasets: [{ label: 'Ders Saati', data: weeklyData, backgroundColor: '#4f46e5', borderRadius: 6 }, { label: 'Çözülen Soru', data: weeklyQuestions, backgroundColor: '#10b981', borderRadius: 6 }] }, options: { responsive: true } });
+        const labels = Array.from(lessonPerf.keys());
+        const values = labels.map(l => { let p = lessonPerf.get(l); return p.hours > 0 ? (p.questions / p.hours).toFixed(1) : 0; });
+        if (performanceChart) performanceChart.destroy();
+        const ctx2 = document.getElementById('performanceChart').getContext('2d');
+        performanceChart = new Chart(ctx2, { type: 'radar', data: { labels: labels, datasets: [{ label: 'Verimlilik (Soru/Saat)', data: values, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.2)', fill: true, pointBackgroundColor: '#4f46e5' }] }, options: { responsive: true } });
+        updateTopicChart(allLessons);
+        updateTextAnalytics(weeklyData, weeklyQuestions, lessonPerf, topicMap, totalHours, totalQuestions);
+    }
+    
+    function combineProgramsForAnalysis(programs) { let combined = []; for (let prog of programs) for (let d=0; d<DAYS.length; d++) { let dayLessons = prog.timetable[d] || []; for (let h=0; h<dayLessons.length; h++) { let lesson = dayLessons[h]; if (lesson && lesson.name) combined.push({ dayIndex: d, lesson: { ...lesson } }); } } return combined; }
+    function performCombinedAnalysis() { if (selectedComparePrograms.length === 0) return showToast("Analiz için en az bir program seçin", "error"); let progs = programHistory.filter(p => selectedComparePrograms.includes(p.id)); if (progs.length === 0) return showToast("Seçili program bulunamadı", "error"); let combined = combineProgramsForAnalysis(progs); updateAnalytics(true, combined); document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelector('[data-tab="analytics"]').classList.add('active'); document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active-panel')); document.getElementById('analyticsPanel').classList.add('active-panel'); showToast(`${progs.length} program birleştirildi`, "success"); }
+    function renderTimeControls() { let cont = document.getElementById("timeSlotsContainer"); if (!cont) return; cont.innerHTML = ""; TIME_SLOTS.forEach((slot, idx) => { let div = document.createElement("div"); div.style.cssText = "background: white; border: 1px solid var(--gray-300); border-radius: 2rem; padding: 0.25rem 0.5rem; display: inline-flex; gap: 0.25rem; align-items: center;"; div.innerHTML = `<input type="text" class="slot-input" value="${escapeHtml(slot)}" data-index="${idx}" style="border: none; width: 55px; font-size: 0.75rem; background: transparent; outline: none;"><button class="remove-slot-btn" data-index="${idx}" style="background: none; border: none; color: var(--danger); cursor: pointer;"><i class="fas fa-times-circle"></i></button>`; cont.appendChild(div); }); document.querySelectorAll(".slot-input").forEach(inp => inp.addEventListener("change", (e) => { let idx = parseInt(inp.dataset.index), val = inp.value.trim(); if (val) { TIME_SLOTS[idx] = val; renderTimetable(); showToast("Zaman dilimi güncellendi"); } else inp.value = TIME_SLOTS[idx]; })); document.querySelectorAll(".remove-slot-btn").forEach(btn => btn.addEventListener("click", () => { let idx = parseInt(btn.dataset.index); if (TIME_SLOTS.length <= 1) return showToast("En az bir zaman dilimi olmalı", "error"); TIME_SLOTS = TIME_SLOTS.filter((_, i) => i !== idx); let newTT = DAYS.map(() => Array(TIME_SLOTS.length).fill(null)); for (let i = 0; i < DAYS.length; i++) for (let j = 0; j < Math.min(timetable[i]?.length, TIME_SLOTS.length); j++) if (timetable[i]?.[j]) newTT[i][j] = { ...timetable[i][j] }; timetable = newTT; renderTimeControls(); renderTimetable(); updateStats(); updateAnalytics(false); showToast("Zaman dilimi silindi"); })); }
+    function openSaveNameModal() { document.getElementById("programNameInput").value = ""; document.getElementById("saveProgramNameModal").style.display = "flex"; }
+    function performSaveWithName() { let programName = document.getElementById("programNameInput").value.trim(); if (programName === "") return showToast("Lütfen bir program adı girin", "error"); let total = 0; timetable.forEach(day => day.forEach(l => { if (l?.name) total++; })); if (total === 0) { showToast("Kaydedilecek ders yok", "error"); return; } let newProg = { id: Date.now(), name: programName, date: new Date().toISOString(), timetable: JSON.parse(JSON.stringify(timetable)), timeSlots: [...TIME_SLOTS], lessonCount: total, favorite: false }; programHistory.unshift(newProg); renderHistory(); updateArchiveStats(); renderCompareList(); initTimetable(); renderTimetable(); updateStats(); updateAnalytics(false); showToast(`"${programName}" kaydedildi ve alan temizlendi`, "success"); document.getElementById("saveProgramNameModal").style.display = "none"; }
+    function cancelSaveName() { document.getElementById("saveProgramNameModal").style.display = "none"; }
+    function quickFillAllDays() { const dersler = [{ name: "Türkçe", topics: ["Paragraf", "Dil Bilgisi", "Anlam Bilgisi"] },{ name: "Matematik", topics: ["Türev", "İntegral", "Fonksiyonlar"] },{ name: "Tarih", topics: ["Osmanlı", "İnkılap Tarihi"] },{ name: "Coğrafya", topics: ["İklim", "Harita Bilgisi"] }]; for (let d = 0; d < DAYS.length; d++) for (let h = 0; h < TIME_SLOTS.length; h++) { const randomDers = dersler[Math.floor(Math.random() * dersler.length)]; const randomTopic = randomDers.topics[Math.floor(Math.random() * randomDers.topics.length)]; timetable[d][h] = { name: randomDers.name, topic: randomTopic, note: "Hızlı şablon", color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, questionCount: Math.floor(Math.random() * 40) + 5, targetQuestion: 50, category: "sayısal", date: new Date().toISOString() }; } renderTimetable(); updateStats(); updateAnalytics(false); showToast("Tüm günler rastgele ders ve konularla dolduruldu", "success"); }
+    function renderHistory() { let container = document.getElementById("historyContainer"); if (programHistory.length === 0) { container.innerHTML = `<div style="text-align:center;padding:2rem;"><i class="fas fa-archive" style="font-size:2rem;opacity:0.3;"></i><p style="font-size:0.75rem; margin-top:0.5rem;">Henüz kayıtlı program yok</p><button class="btn-primary" onclick="document.querySelector('[data-tab=\\'create\\']').click()">Program Oluştur</button></div>`; return; } let html = '<div class="history-grid">'; programHistory.forEach(p => { html += `<div class="history-card"><div style="display:flex;justify-content:space-between;"><strong style="font-size:0.875rem;">${p.favorite ? '<i class="fas fa-star" style="color:#f59e0b;"></i> ' : ''}${escapeHtml(p.name)}</strong><small style="font-size:0.7rem;">${formatDate(p.date)}</small></div><div style="margin:0.5rem 0; font-size:0.75rem;">📚 ${p.lessonCount} ders</div><div class="history-card-actions"><button class="btn-outline view-program-detail" data-id="${p.id}" style="padding:0.25rem 0.5rem; font-size:0.7rem;"><i class="fas fa-eye"></i> Görüntüle</button><button class="btn-danger delete-program-btn" data-id="${p.id}" style="padding:0.25rem 0.5rem; font-size:0.7rem;"><i class="fas fa-trash"></i> Sil</button></div></div>`; }); html += '</div>'; container.innerHTML = html; document.querySelectorAll(".view-program-detail").forEach(btn => btn.addEventListener("click", (e) => { let found = programHistory.find(p => p.id === parseInt(btn.dataset.id)); if (found) showProgramDetail(found); })); document.querySelectorAll(".delete-program-btn").forEach(btn => btn.addEventListener("click", (e) => { let id = parseInt(btn.dataset.id); if(confirm("Silinsin mi?")) { programHistory = programHistory.filter(p => p.id !== id); renderHistory(); updateArchiveStats(); renderCompareList(); showToast("Program silindi"); } })); }
+    function updateArchiveStats() { document.getElementById("archivedCount").innerHTML = programHistory.length; document.getElementById("favoriteCount").innerHTML = programHistory.filter(p => p.favorite).length; if (programHistory.length > 0) document.getElementById("lastProgramDate").innerHTML = formatDate(programHistory[0].date); else document.getElementById("lastProgramDate").innerHTML = "-"; }
+    function renderCompareList() { let container = document.getElementById("compareProgramsList"); if (programHistory.length === 0) { container.innerHTML = "<p style='text-align:center;padding:1rem;'>Karşılaştırma için program arşivleyin.</p>"; return; } let html = ""; selectedComparePrograms = []; programHistory.forEach(p => { html += `<div style="background:white;border-radius:0.5rem;padding:0.5rem;display:flex;align-items:center;gap:0.5rem;border:1px solid var(--gray-200);"><input type="checkbox" class="compare-checkbox" data-id="${p.id}" style="width:1rem;height:1rem;"><div><strong style="font-size:0.875rem;">${escapeHtml(p.name)}</strong><div style="font-size:0.7rem;color:var(--gray-500);">${p.lessonCount} ders | ${formatDate(p.date)}</div></div></div>`; }); container.innerHTML = html; document.querySelectorAll(".compare-checkbox").forEach(cb => cb.addEventListener("change", (e) => { let id = parseInt(cb.dataset.id); if (cb.checked) { if (!selectedComparePrograms.includes(id)) selectedComparePrograms.push(id); } else { selectedComparePrograms = selectedComparePrograms.filter(i => i !== id); } })); }
+    function exportToPDF() { let element = document.getElementById("timetableGrid"); html2pdf().set({ margin: [0.3,0.3], filename: `program_${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' } }).from(element).save(); showToast("PDF oluşturuluyor"); }
+    function exportAllData() { let data = { timetable, timeSlots: TIME_SLOTS, history: programHistory }; let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })); a.download = `akademik_backup_${Date.now()}.json`; a.click(); showToast("Veriler dışa aktarıldı"); }
+    function importData() { let input = document.createElement("input"); input.type = "file"; input.accept = "application/json"; input.onchange = e => { let reader = new FileReader(); reader.onload = evt => { try { let data = JSON.parse(evt.target.result); if (data.timetable) timetable = data.timetable; if (data.timeSlots) TIME_SLOTS = data.timeSlots; if (data.history) programHistory = data.history; renderTimeControls(); renderTimetable(); updateStats(); updateAnalytics(false); renderHistory(); updateArchiveStats(); renderCompareList(); showToast("Veriler içe aktarıldı"); } catch(err) { showToast("Hatalı dosya", "error"); } }; reader.readAsText(input.files[0]); }; input.click(); }
+    function clearAllData() { if (confirm("TÜM VERİLER SİLİNECEK! Devam?")) { initTimetable(); TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"]; programHistory = []; renderTimeControls(); renderTimetable(); updateStats(); updateAnalytics(false); renderHistory(); updateArchiveStats(); renderCompareList(); showToast("Tüm veriler silindi"); } }
+    function changeTheme(theme) { let root = document.documentElement; if (theme === 'dark') { document.body.style.background = "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"; document.querySelector('.app-container').style.background = "#1e293b"; root.style.setProperty('--gray-50', '#0f172a'); root.style.setProperty('--gray-100', '#1e293b'); root.style.setProperty('--gray-200', '#334155'); root.style.setProperty('--gray-300', '#475569'); root.style.setProperty('--gray-700', '#cbd5e1'); root.style.setProperty('--gray-800', '#e2e8f0'); root.style.setProperty('--gray-900', '#f1f5f9'); } else { document.body.style.background = "linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)"; document.querySelector('.app-container').style.background = "white"; root.style.setProperty('--gray-50', '#f9fafb'); root.style.setProperty('--gray-100', '#f1f5f9'); root.style.setProperty('--gray-200', '#e2e8f0'); root.style.setProperty('--gray-300', '#cbd5e1'); root.style.setProperty('--gray-700', '#334155'); root.style.setProperty('--gray-800', '#1e293b'); root.style.setProperty('--gray-900', '#0f172a'); } showToast(`Tema: ${theme}`); }
+    function closeCompareModal() { document.getElementById("compareResultModal").style.display = "none"; }
+
+    document.addEventListener("DOMContentLoaded", () => { initTimetable(); renderTimeControls(); renderTimetable(); updateStats(); updateAnalytics(false); });
+    document.querySelectorAll('.nav-tab').forEach(t => t.addEventListener("click", () => { let tab = t.dataset.tab; document.querySelectorAll('.nav-tab').forEach(tt => tt.classList.remove('active')); t.classList.add('active'); document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active-panel')); document.getElementById(tab === 'create' ? 'createPanel' : tab === 'history' ? 'historyPanel' : tab === 'compare' ? 'comparePanel' : tab === 'analytics' ? 'analyticsPanel' : 'settingsPanel').classList.add('active-panel'); if (tab === 'history') renderHistory(); if (tab === 'compare') renderCompareList(); if (tab === 'analytics') updateAnalytics(false); }));
+    document.getElementById("saveProgramBtn")?.addEventListener("click", openSaveNameModal);
+    document.getElementById("confirmSaveNameBtn")?.addEventListener("click", performSaveWithName);
+    document.getElementById("cancelSaveNameBtn")?.addEventListener("click", cancelSaveName);
+    document.getElementById("saveLessonBtn")?.addEventListener("click", () => { if (currentEditDay !== -1) saveLesson(currentEditDay, currentEditHour, { name: document.getElementById("lessonName").value, topic: document.getElementById("lessonTopic").value, note: document.getElementById("lessonNote").value, color: document.getElementById("lessonColor").value, questionCount: document.getElementById("questionCount").value, targetQuestion: document.getElementById("targetQuestion").value, category: document.getElementById("lessonCategory").value }); closeModal(); });
+    document.getElementById("deleteLessonBtn")?.addEventListener("click", () => { if (currentEditDay !== -1) deleteLesson(currentEditDay, currentEditHour); closeModal(); });
+    document.getElementById("closeModalBtn")?.addEventListener("click", closeModal);
+    document.getElementById("closeDetailModalBtn")?.addEventListener("click", () => document.getElementById("programDetailModal").style.display = "none");
+    document.getElementById("clearAllBtn")?.addEventListener("click", () => { if (confirm("Tüm dersler silinsin?")) { initTimetable(); renderTimetable(); updateStats(); updateAnalytics(false); showToast("Program temizlendi"); } });
+    document.getElementById("addTimeSlotBtn")?.addEventListener("click", () => { TIME_SLOTS.push("Yeni"); let newTT = DAYS.map(() => Array(TIME_SLOTS.length).fill(null)); for (let i = 0; i < DAYS.length; i++) for (let j = 0; j < Math.min(timetable[i]?.length, TIME_SLOTS.length-1); j++) if (timetable[i]?.[j]) newTT[i][j] = { ...timetable[i][j] }; timetable = newTT; renderTimeControls(); renderTimetable(); updateStats(); updateAnalytics(false); showToast("Zaman dilimi eklendi"); });
+    document.getElementById("resetTimeSlotsBtn")?.addEventListener("click", () => { TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"]; let newTT = DAYS.map(() => Array(TIME_SLOTS.length).fill(null)); for (let i = 0; i < DAYS.length; i++) for (let j = 0; j < Math.min(timetable[i]?.length, TIME_SLOTS.length); j++) if (timetable[i]?.[j]) newTT[i][j] = { ...timetable[i][j] }; timetable = newTT; renderTimeControls(); renderTimetable(); updateStats(); updateAnalytics(false); showToast("Zaman dilimleri sıfırlandı"); });
+    document.getElementById("exportPdfBtn")?.addEventListener("click", exportToPDF);
+    document.getElementById("quickTemplateBtn")?.addEventListener("click", quickFillAllDays);
+    document.getElementById("analyzeCombinedBtn")?.addEventListener("click", performCombinedAnalysis);
+    document.getElementById("selectAllCompareBtn")?.addEventListener("click", () => { document.querySelectorAll(".compare-checkbox").forEach(cb => { if (!cb.checked) { cb.checked = true; let id = parseInt(cb.dataset.id); if (!selectedComparePrograms.includes(id)) selectedComparePrograms.push(id); } }); showToast("Tüm programlar seçildi"); });
+    document.getElementById("clearAllCompareBtn")?.addEventListener("click", () => { document.querySelectorAll(".compare-checkbox").forEach(cb => { cb.checked = false; }); selectedComparePrograms = []; showToast("Seçimler temizlendi"); });
+    document.getElementById("closeEditHistoryModalBtn")?.addEventListener("click", closeEditHistoryModal);
+    document.getElementById("saveEditHistoryLessonBtn")?.addEventListener("click", saveEditedHistoryLesson);
+    window.addEventListener("click", (e) => { if (e.target === document.getElementById("lessonModal")) closeModal(); if (e.target === document.getElementById("programDetailModal")) document.getElementById("programDetailModal").style.display = "none"; if (e.target === document.getElementById("compareResultModal")) closeCompareModal(); if (e.target === document.getElementById("saveProgramNameModal")) cancelSaveName(); if (e.target === document.getElementById("editHistoryLessonModal")) closeEditHistoryModal(); });
+    window.changeTheme = changeTheme; window.exportAllData = exportAllData; window.importData = importData; window.clearAllData = clearAllData; window.closeCompareModal = closeCompareModal;
+</script>
+</body>
+</html>
