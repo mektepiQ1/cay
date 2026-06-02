@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core-Admin Panel (A2)</title>
+    <style>
+        :root { --bg: #09090b; --card: #18181b; --primary: #8b5cf6; --primary-hover: #a78bfa; --text: #fafafa; --text-muted: #a1a1aa; --border: #27272a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; }
+        @media (max-width: 968px) { body { grid-template-columns: 1fr; } }
+        
+        .panel { background: var(--card); padding: 2rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); height: fit-content; }
+        h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; color: #fff; }
+        h2 span { color: var(--primary); }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="text"], textarea { width: 100%; padding: 0.8rem 1rem; background: #09090b; border: 1px solid var(--border); border-radius: 10px; color: #fff; font-size: 0.95rem; transition: all 0.2s; }
+        input[type="text"]:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2); }
+        
+        /* Drag & Drop Area */
+        .drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; background: #09090b; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: var(--primary); background: rgba(139, 92, 246, 0.02); }
+        .drop-zone p { font-size: 0.9rem; color: var(--text-muted); }
+        .drop-zone input { display: none; }
+        .file-info { margin-top: 0.5rem; font-size: 0.85rem; color: var(--primary); font-weight: 600; display: none; }
+
+        button.btn-submit { width: 100%; padding: 1rem; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        button.btn-submit:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        
+        .status { margin-top: 1rem; padding: 0.8rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-align: center; display: none; }
+        .status.process { background: rgba(255,255,255,0.05); color: #fff; }
+        .status.success { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; }
+
+        /* Sağ Taraf: Canlı Yönetim Listesi */
+        .manager-list { display: flex; flex-direction: column; gap: 1rem; max-height: 80vh; overflow-y: auto; padding-right: 5px; }
+        .manager-item { background: #121214; padding: 1rem; border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .manager-info h4 { font-size: 1rem; color: #fff; margin-bottom: 0.2rem; }
+        .manager-info p { font-size: 0.8rem; color: var(--text-muted); }
+        .btn-delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
+        .btn-delete:hover { background: #ef4444; color: #fff; }
+        
+        .nav-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: 0.2s; }
+        .nav-link:hover { color: var(--primary); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <!-- Sol Bölüm: Form -->
+    <div class="panel">
+        <h2>🚀 Medya <span>Kontrol Merkezi</span></h2>
+        <form id="uploadForm">
+            <!-- İSTEK 1: Kategori ve Egzersiz İsmi Yer Değiştirdi -->
+            <div class="form-group">
+                <label>Kategori</label>
+                <input type="text" id="category" required placeholder="Örn: Göğüs, Kol, Bacak" list="cats">
+                <datalist id="cats"><option value="Göğüs"><option value="Sırt"><option value="Kol"><option value="Bacak"><option value="Kardiyo"></datalist>
+            </div>
+            <div class="form-group">
+                <label>Egzersiz İsmi</label>
+                <input type="text" id="title" required placeholder="Örn: Incline Dumbbell Press">
+            </div>
+            <div class="form-group">
+                <label>Profesyonel Açıklama & Form Taktikleri</label>
+                <textarea id="desc" rows="4" required placeholder="Hareketi yaparken dikkat edilmesi gereken kritik noktalar..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Ağır Medya Dosyası (GIF / MP4 / WEBM)</label>
+                <div class="drop-zone" id="dropZone" onclick="document.getElementById('mediaFile').click()">
+                    <p>Dosyayı buraya sürükleyin veya <b>göz atın</b></p>
+                    <p style="font-size: 0.75rem; margin-top: 5px;">(100MB+ Devasa Dosyalar Desteklenir)</p>
+                    <div class="file-info" id="fileInfo"></div>
+                    <input type="file" id="mediaFile" accept="image/gif, video/mp4, video/webm" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Veritabanını Güncelle</button>
+            <div id="status" class="status"></div>
+        </form>
+        <a href="a1.html" class="nav-link" target="_blank">A1 Canlı Gösterim Ekranını Aç ➔</a>
+    </div>
+
+    <!-- Sağ Bölüm: Canlı Veri Yönetimi -->
+    <div class="panel">
+        <h2>📦 Depolanan <span>Hareketler</span></h2>
+        <div class="manager-list" id="managerList"></div>
+    </div>
+
+    <script>
+        let db;
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('mediaFile');
+        const fileInfo = document.getElementById('fileInfo');
+
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if(e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileInfo(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if(fileInput.files.length) updateFileInfo(fileInput.files[0]);
+        });
+        function updateFileInfo(file) {
+            fileInfo.textContent = `Seçilen Dosya: ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
+            fileInfo.style.display = 'block';
+        }
+
+        const request = indexedDB.open("ProductionSportsDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("exercises")) {
+                db.createObjectStore("exercises", { keyPath: "id", autoIncrement: true });
+            }
+        };
+        request.onsuccess = (e) => { db = e.target.result; fetchItems(); };
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!db) return;
+
+            const file = fileInput.files[0];
+            showStatus("Dev medya bloğu diske yazılıyor...", "process");
+
+            const transaction = db.transaction(["exercises"], "readwrite");
+            const store = transaction.objectStore("exercises");
+
+            const entry = {
+                title: document.getElementById('title').value.trim(),
+                category: document.getElementById('category').value.trim(),
+                desc: document.getElementById('desc').value.trim(),
+                mediaBlob: file,
+                mediaType: file.type,
+                createdAt: Date.now()
+            };
+
+            store.add(entry).onsuccess = () => {
+                showStatus("✅ Başarıyla Kaydedildi!", "success");
+                document.getElementById('uploadForm').reset();
+                fileInfo.style.display = 'none';
+                fetchItems();
+            };
+        });
+
+        function fetchItems() {
+            const list = document.getElementById('managerList');
+            list.innerHTML = '';
+            const store = db.transaction(["exercises"], "readonly").objectStore("exercises");
+            
+            store.getAll().onsuccess = (e) => {
+                const items = e.target.result;
+                if(items.length === 0) { list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Depo boş.</p>'; return; }
+                
+                items.sort((a,b) => b.createdAt - a.createdAt).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'manager-item';
+                    div.innerHTML = `
+                        <div class="manager-info">
+                            <h4>${item.title}</h4>
+                            <p>${item.category} • ${(item.mediaBlob.size/1024/1024).toFixed(1)} MB</p>
+                        </div>
+                        <button class="btn-delete" onclick="deleteItem(${item.id})">Sil</button>
+                    `;
+                    list.appendChild(div);
+                });
+            };
+        }
+
+        function deleteItem(id) {
+            if(confirm("Bu egzersizi silmek istediğinize emin misiniz?")) {
+                db.transaction(["exercises"], "readwrite").objectStore("exercises").delete(id).onsuccess = () => {
+                    fetchItems();
+                };
+            }
+        }
+
+        function showStatus(msg, cls) {
+            const status = document.getElementById('status');
+            status.textContent = msg; status.className = 'status ' + cls; status.style.display = 'block';
+            if(cls === 'success') setTimeout(() => status.style.display = 'none', 3000);
+        }
+    </script>
+</body>
+</html>
