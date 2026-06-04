@@ -1,8 +1,8 @@
-const CACHE_NAME = 'ogrenci-v1';
+const CACHE_NAME = 'ogrenci-v2';
 const ASSETS = [
-  'index.html',
-  'manifest.json',
-  'log.jpg'
+  './index.html',
+  './manifest.json',
+  './log.jpg'
 ];
 
 self.addEventListener('install', (e) => {
