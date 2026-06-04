@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Öğrenci Sistemi</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF0000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #FF0000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Arka plan resmi tam kaplama */
+        .bg-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('log.jpg') no-repeat center center;
+            background-size: contain;
+            z-index: 1;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.02);
+            z-index: 2;
+        }
+
+        /* Alt taraftaki buton alanı */
+        .button-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 3;
+            margin-top: auto;
+            margin-bottom: 25px;
+        }
+
+        /* Beyaz Buton Standartları */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.1s ease, opacity 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #FFFFFF;
+            color: #FF0000;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-container"></div>
+    <div class="overlay"></div>
+
+    <div class="button-container">
+        <a href="https://ogarayuz.infinityfree.io/ogrenci.php?hl=tr-TR" class="btn">Devam Et</a>
+        
+        <button id="installBtn" class="btn">Uygulamayı İndir</button>
+    </div>
+
+    <script>
+        // Service Worker Kayıt
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Aktif'))
+                    .catch(err => console.log('SW Hatası:', err));
+            });
+        }
+
+        // PWA Kurulum Tetikleyicisi
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Doğrudan tarayıcının kendi orijinal yükleme penceresini açar
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Seçim: ${outcome}`);
+                deferredPrompt = null;
+            } else {
+                // Hazır değilse hiçbir alert veya mesaj fırlatma, arka planda sessizce beklesin
+                console.log('PWA tetikleyicisi henüz hazır değil.');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('Uygulama başarıyla yüklendi.');
+            deferredPrompt = null;
+        });
+    </script>
+</body>
+</html>
