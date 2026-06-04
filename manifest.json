@@ -2,7 +2,7 @@
   "name": "Öğrenci Sistemi",
   "short_name": "Öğrenci",
   "description": "Yapay Zeka Destekli Öğrenci Ekosistemi",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FF0000",
   "theme_color": "#FF0000",
