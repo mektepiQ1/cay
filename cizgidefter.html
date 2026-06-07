@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Profesyonel Öğrenci Not Defteri</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Caveat:wght@500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-app: #f4f6f9;
+            --bg-sidebar: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --accent-red: #ef4444;
+            --border-color: #e2e8f0;
+            
+            /* Gerçekçi Defter Renkleri */
+            --paper-color: #fffef7; 
+            --line-blue: rgba(162, 196, 225, 0.6); 
+            --margin-red: rgba(239, 68, 68, 0.4); 
+            --line-height: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- SİDEBAR (SOL MENÜ) --- */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02);
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 24px 24px 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header h2 i {
+            color: var(--accent-blue);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+            transform: translateY(-1px);
+        }
+
+        /* ARAMA INPUTU */
+        .search-container {
+            padding: 0 24px 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-sidebar);
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            background-color: #f8fafc;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .subject-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            padding: 12px;
+        }
+
+        .subject-item {
+            padding: 14px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .subject-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .subject-item i.fa-file-signature {
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .subject-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .subject-item.active {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .subject-item.active i.fa-file-signature {
+            color: #0369a1;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .subject-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            color: var(--accent-red);
+            background-color: #fee2e2;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* --- ANA EDİTÖR ALANI --- */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-app);
+            position: relative;
+        }
+
+        /* Giriş Ekranı */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 24px;
+        }
+
+        .welcome-screen .icon-wrapper {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+
+        .welcome-screen i {
+            font-size: 40px;
+            color: var(--accent-blue);
+        }
+
+        .welcome-screen h3 {
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* Defter Görünümü Ekranı */
+        .notebook-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .notebook-screen.hidden {
+            display: none;
+        }
+
+        .notebook-header {
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            z-index: 5;
+        }
+
+        .notebook-header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .save-status-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background-color: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .save-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            transition: background-color 0.3s;
+        }
+
+        .save-status-container.saving .save-status-dot {
+            background-color: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        /* GERÇEKÇİ DEFTER TASARIMI */
+        .paper-container {
+            flex: 1;
+            overflow-y: auto; /* Dış alan kaydırılabilir */
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Defter üstten başlasın */
+            background-color: #e2e8f0; 
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+
+        .paper {
+            width: 100%;
+            max-width: 850px;
+            /* Defterin yüksekliği içeriğe göre otomatik UZASIN */
+            min-height: calc(100vh - 180px); /* Ekrana sığacak minimum yükseklik */
+            height: max-content; 
+            
+            background-color: var(--paper-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 1px 8px rgba(0, 0, 0, 0.04);
+            border-radius: 4px;
+            position: relative;
+            padding: 40px 40px 40px 100px; 
+            font-size: 1.1rem;
+            line-height: var(--line-height);
+            color: #334155;
+            outline: none;
+            word-wrap: break-word; /* Uzun kelimeleri kır */
+            overflow-wrap: break-word;
+            white-space: pre-wrap; /* Enter'ları ve boşlukları koru, taşmayı engelle */
+            
+            /* Gerçekçi Çizgiler */
+            background-image: 
+                linear-gradient(90deg, transparent 79px, var(--margin-red) 79px, var(--margin-red) 81px, transparent 81px),
+                linear-gradient(var(--line-blue) 1px, transparent 1px);
+            background-size: 100% 100%, 100% var(--line-height);
+            /* local: Kağıt uzadıkça/yazı eklendikçe çizgiler de aşağı doğru üretilir */
+            background-attachment: local; 
+        }
+
+        /* Boşken görüntülenecek ipucu yazısı */
+        .paper[data-placeholder]:empty:before {
+            content: attr(data-placeholder);
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* Resimlerin taşmasını engelle (eğer eklenirse) */
+        .paper img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+        }
+
+        /* --- MODAL (YENİ KONU DİYALOGU) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 12% auto;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
+            animation: modalSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #f8fafc;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .close-btn {
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 4px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-dark);
+            background-color: #e2e8f0;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-body label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .modal-body input {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: white;
+            border: 1px solid #cbd5e1;
+            color: var(--text-dark);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .modal-body input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8fafc;
+        }
+
+        .btn-secondary {
+            padding: 10px 16px;
+            background-color: white;
+            color: var(--text-dark);
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f1f5f9;
+        }
+
+        .modal-footer .btn-primary {
+            width: auto;
+            padding: 10px 20px;
+            box-shadow: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ========= RESPONSIVE DÜZENLEMELER (TÜM CİHAZLARA UYUMLU) ========= */
+        /* Tablet ve mobil cihazlar için dikey düzen */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                max-height: 45vh;
+                flex-shrink: 0;
+            }
+            
+            .sidebar-header {
+                padding: 16px 20px;
+            }
+            
+            .sidebar-header h2 {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+            
+            .btn-primary {
+                padding: 10px 14px;
+                font-size: 0.9rem;
+            }
+            
+            .search-container {
+                padding: 0 20px 12px 20px;
+            }
+            
+            .subject-list {
+                padding: 8px;
+                max-height: calc(45vh - 130px);
+                overflow-y: auto;
+            }
+            
+            .subject-item {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .notebook-header {
+                padding: 12px 20px;
+            }
+            
+            .notebook-header h1 {
+                font-size: 1.2rem;
+                max-width: 60%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .paper-container {
+                padding: 16px;
+            }
+            
+            /* Defter sayfası mobilde daha dar kenarlıklar ve çizgi uyumu */
+            .paper {
+                padding: 24px 24px 24px 70px;
+                font-size: 1rem;
+                min-height: calc(100vh - 280px);
+                /* Mobil için çizgi pozisyonunu padding ile uyumlu hale getir */
+                background-image: 
+                    linear-gradient(90deg, transparent 49px, var(--margin-red) 49px, var(--margin-red) 51px, transparent 51px),
+                    linear-gradient(var(--line-blue) 1px, transparent 1px);
+                background-size: 100% 100%, 100% var(--line-height);
+            }
+            
+            .welcome-screen .icon-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .welcome-screen i {
+                font-size: 32px;
+            }
+            
+            .welcome-screen h3 {
+                font-size: 1.2rem;
+            }
+            
+            .welcome-screen p {
+                font-size: 0.9rem;
+                padding: 0 16px;
+            }
+            
+            .modal-content {
+                margin: 30% auto;
+                width: 90%;
+                max-width: 380px;
+            }
+            
+            .modal-header, .modal-body, .modal-footer {
+                padding: 16px 20px;
+            }
+        }
+        
+        /* Küçük telefonlar (max-width: 480px) */
+        @media (max-width: 480px) {
+            .sidebar-header {
+                padding: 12px 16px;
+            }
+            
+            .sidebar-header h2 {
+                font-size: 1.1rem;
+                gap: 8px;
+            }
+            
+            .btn-primary {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .search-container {
+                padding: 0 16px 10px 16px;
+            }
+            
+            .search-input {
+                padding: 8px 12px 8px 32px;
+                font-size: 0.85rem;
+            }
+            
+            .subject-item {
+                padding: 8px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .subject-item-left {
+                gap: 8px;
+            }
+            
+            .notebook-header {
+                padding: 10px 16px;
+            }
+            
+            .notebook-header h1 {
+                font-size: 1rem;
+                max-width: 70%;
+            }
+            
+            .save-status-container {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+            
+            .paper-container {
+                padding: 12px;
+            }
+            
+            .paper {
+                padding: 20px 20px 20px 55px;
+                font-size: 0.95rem;
+                line-height: 28px;
+                min-height: calc(100vh - 240px);
+                background-image: 
+                    linear-gradient(90deg, transparent 39px, var(--margin-red) 39px, var(--margin-red) 41px, transparent 41px),
+                    linear-gradient(var(--line-blue) 1px, transparent 1px);
+                background-size: 100% 100%, 100% 28px;
+            }
+            
+            /* satır yüksekliği değiştiği için line-height değişkeni override */
+            .paper {
+                --line-height: 28px;
+            }
+            
+            .welcome-screen .icon-wrapper {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 16px;
+            }
+            
+            .welcome-screen i {
+                font-size: 28px;
+            }
+            
+            .modal-content {
+                margin: 40% auto;
+                width: 92%;
+            }
+            
+            .modal-body input {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .btn-secondary, .modal-footer .btn-primary {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Yatay mod (tablet yatay) için iyileştirme */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .paper {
+                padding: 32px 32px 32px 85px;
+                background-image: 
+                    linear-gradient(90deg, transparent 64px, var(--margin-red) 64px, var(--margin-red) 66px, transparent 66px),
+                    linear-gradient(var(--line-blue) 1px, transparent 1px);
+                background-size: 100% 100%, 100% var(--line-height);
+            }
+            
+            .notebook-header {
+                padding: 14px 30px;
+            }
+        }
+        
+        /* Yüksek çözünürlüklü geniş ekranlar için maksimum konfor */
+        @media (min-width: 1600px) {
+            .sidebar {
+                width: 360px;
+            }
+            
+            .paper {
+                max-width: 1000px;
+                padding: 48px 48px 48px 120px;
+                font-size: 1.2rem;
+                background-image: 
+                    linear-gradient(90deg, transparent 99px, var(--margin-red) 99px, var(--margin-red) 101px, transparent 101px),
+                    linear-gradient(var(--line-blue) 1px, transparent 1px);
+                background-size: 100% 100%, 100% var(--line-height);
+            }
+            
+            .paper-container {
+                padding: 48px;
+            }
+            
+            .notebook-header h1 {
+                font-size: 1.6rem;
+            }
+        }
+        
+        /* Mobil cihazlarda delete butonunun her zaman görünür olması için dokunmatik iyileştirme */
+        @media (hover: none) and (pointer: coarse) {
+            .delete-btn {
+                opacity: 0.6;
+            }
+            .subject-item .delete-btn {
+                opacity: 0.7;
+            }
+            .delete-btn:hover {
+                opacity: 1;
+            }
+        }
+        
+        /* İçerik taşmasını engellemek için ek önlemler */
+        .paper img, .paper iframe, .paper video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        /* Very small devices (max-width: 360px) için ekstra ince ayar */
+        @media (max-width: 360px) {
+            .paper {
+                padding: 16px 16px 16px 45px;
+                font-size: 0.9rem;
+                line-height: 26px;
+                background-image: 
+                    linear-gradient(90deg, transparent 29px, var(--margin-red) 29px, var(--margin-red) 31px, transparent 31px),
+                    linear-gradient(var(--line-blue) 1px, transparent 1px);
+                background-size: 100% 100%, 100% 26px;
+            }
+            
+            .paper {
+                --line-height: 26px;
+            }
+            
+            .notebook-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .notebook-header h1 {
+                font-size: 0.95rem;
+                max-width: 100%;
+                white-space: normal;
+                word-break: break-word;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-graduation-cap"></i> Not Defterim</h2>
+                <button id="newNoteBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Yeni Not Oluştur
+                </button>
+            </div>
+            
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Konu veya ders ara..." autocomplete="off">
+                </div>
+            </div>
+
+            <ul id="subjectList" class="subject-list">
+                </ul>
+            <div id="noResults" class="no-results">Sonuç bulunamadı.</div>
+        </aside>
+
+        <main class="editor-area">
+            <div id="welcomeScreen" class="welcome-screen">
+                <div class="icon-wrapper">
+                    <i class="fas fa-pen-fancy"></i>
+                </div>
+                <h3>Öğrenci Not Defterine Hoş Geldiniz</h3>
+                <p>Başlamak için sol menüden bir ders/konu seçin veya yeni bir tane oluşturun.</p>
+            </div>
+            
+            <div id="notebookScreen" class="notebook-screen hidden">
+                <header class="notebook-header">
+                    <h1 id="currentSubjectTitle">Konu Başlığı</h1>
+                    <div id="saveStatus" class="save-status-container">
+                        <div class="save-status-dot"></div>
+                        <span id="saveStatusText">Kaydedildi</span>
+                    </div>
+                </header>
+                <div class="paper-container">
+                    <div id="paper" class="paper" contenteditable="true" spellcheck="false" data-placeholder="Notlarınızı buraya yazabilirsiniz. Sayfa aşağıya doğru sonsuza kadar uzayacaktır..."></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="subjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Yeni Konu / Ders Oluştur</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label>DERS VEYA KONU ADI</label>
+                <input type="text" id="subjectInput" placeholder="Örn: Veri Yapıları, Makro İktisat..." autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button id="cancelBtn" class="btn-secondary">İptal</button>
+                <button id="createSubjectBtn" class="btn-primary">Oluştur</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dbName = "UltraStudentNotebookDB";
+        const storeName = "student_notes";
+        let db;
+        let allNotes = []; // Arama için notları RAM'de tutalım
+
+        const initDB = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onerror = (e) => reject(e.target.error);
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                    loadSubjects(); 
+                };
+                request.onupgradeneeded = (e) => {
+                    db = e.target.result;
+                    if (!db.objectStoreNames.contains(storeName)) {
+                        db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
+                    }
+                };
+            });
+        };
+
+        const saveNoteToDB = (noteObj) => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.put(noteObj);
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = () => reject(request.error);
+            });
+        };
+
+        const getAllNotesFromDB = () => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        };
+
+        const deleteNoteFromDB = (id) => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        };
+
+        const newNoteBtn = document.getElementById("newNoteBtn");
+        const modal = document.getElementById("subjectModal");
+        const closeBtn = document.querySelector(".close-btn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const createSubjectBtn = document.getElementById("createSubjectBtn");
+        const subjectInput = document.getElementById("subjectInput");
+        const subjectList = document.getElementById("subjectList");
+        const welcomeScreen = document.getElementById("welcomeScreen");
+        const notebookScreen = document.getElementById("notebookScreen");
+        const currentSubjectTitle = document.getElementById("currentSubjectTitle");
+        const paper = document.getElementById("paper");
+        const saveStatus = document.getElementById("saveStatus");
+        const saveStatusText = document.getElementById("saveStatusText");
+        const searchInput = document.getElementById("searchInput");
+        const noResults = document.getElementById("noResults");
+
+        let activeNote = null; 
+        let saveTimeout;
+
+        const openModal = () => {
+            modal.style.display = "block";
+            subjectInput.value = "";
+            setTimeout(() => subjectInput.focus(), 100);
+        };
+
+        const closeModal = () => modal.style.display = "none";
+
+        newNoteBtn.addEventListener("click", openModal);
+        closeBtn.addEventListener("click", closeModal);
+        cancelBtn.addEventListener("click", closeModal);
+        window.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+        createSubjectBtn.addEventListener("click", async () => {
+            const subjectName = subjectInput.value.trim();
+            if (subjectName === "") return;
+
+            const newNoteObj = {
+                subject: subjectName,
+                content: "",
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                const generatedId = await saveNoteToDB(newNoteObj);
+                newNoteObj.id = generatedId;
+                closeModal();
+                await loadSubjects();
+                openNote(newNoteObj);
+                searchInput.value = ""; // yeni oluşturunca aramayı sıfırla
+            } catch (error) {
+                console.error(error);
+                alert("Not oluşturulurken bir hata meydana geldi.");
+            }
+        });
+
+        subjectInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") createSubjectBtn.click();
+        });
+
+        // DOM'a listeyi basan fonksiyon (Arama filtresi ile çalışır)
+        const renderList = (notesToRender) => {
+            subjectList.innerHTML = "";
+            
+            if (notesToRender.length === 0) {
+                subjectList.style.display = "none";
+                noResults.style.display = "block";
+                return;
+            }
+
+            subjectList.style.display = "block";
+            noResults.style.display = "none";
+
+            notesToRender.forEach(note => {
+                const li = document.createElement("li");
+                li.className = "subject-item";
+                if (activeNote && note.id === activeNote.id) li.classList.add("active");
+
+                const leftDiv = document.createElement("div");
+                leftDiv.className = "subject-item-left";
+                leftDiv.innerHTML = `<i class="fas fa-file-signature"></i> <span>${note.subject}</span>`;
+                
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`;
+                deleteBtn.title = "Notu Sil";
+                
+                deleteBtn.addEventListener("click", async (e) => {
+                    e.stopPropagation(); 
+                    if (confirm(`"${note.subject}" konusunu silmek istediğinize emin misiniz?`)) {
+                        await deleteNoteFromDB(note.id);
+                        if (activeNote && activeNote.id === note.id) {
+                            activeNote = null;
+                            notebookScreen.classList.add("hidden");
+                            welcomeScreen.style.display = "flex";
+                        }
+                        loadSubjects(); // Listeyi yenile
+                    }
+                });
+
+                li.appendChild(leftDiv);
+                li.appendChild(deleteBtn);
+                li.addEventListener("click", () => openNote(note));
+                subjectList.appendChild(li);
+            });
+        };
+
+        const loadSubjects = async () => {
+            try {
+                allNotes = await getAllNotesFromDB();
+                allNotes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                
+                // Mevcut arama değerine göre filtrele
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                if (searchTerm) {
+                    const filtered = allNotes.filter(n => n.subject.toLowerCase().includes(searchTerm));
+                    renderList(filtered);
+                } else {
+                    renderList(allNotes);
+                }
+            } catch (err) {
+                console.error("Yükleme hatası:", err);
+            }
+        };
+
+        // ARAMA INPUT EVENTİ
+        searchInput.addEventListener("input", (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const filteredNotes = allNotes.filter(note => note.subject.toLowerCase().includes(searchTerm));
+            renderList(filteredNotes);
+        });
+
+        const openNote = (noteObj) => {
+            activeNote = noteObj;
+            welcomeScreen.style.display = "none";
+            notebookScreen.classList.remove("hidden");
+            
+            currentSubjectTitle.textContent = noteObj.subject;
+            paper.innerHTML = noteObj.content; 
+            
+            saveStatus.classList.remove("saving");
+            saveStatusText.textContent = "Kaydedildi";
+
+            document.querySelectorAll(".subject-item").forEach(item => item.classList.remove("active"));
+            
+            // Sadece görsel olarak aktifi işaretle, DB yormamak için loadSubjects çağırmıyoruz
+            const currentListItems = subjectList.querySelectorAll('.subject-item');
+            currentListItems.forEach(li => {
+                if(li.querySelector('span').textContent === noteObj.subject) {
+                    li.classList.add('active');
+                }
+            });
+        };
+
+        paper.addEventListener("input", () => {
+            if (!activeNote) return;
+
+            saveStatus.classList.add("saving");
+            saveStatusText.textContent = "Kaydediliyor...";
+
+            clearTimeout(saveTimeout);
+
+            saveTimeout = setTimeout(async () => {
+                if (!activeNote) return;
+                
+                activeNote.content = paper.innerHTML;
+                activeNote.updatedAt = new Date().toISOString();
+
+                try {
+                    await saveNoteToDB(activeNote);
+                    saveStatus.classList.remove("saving");
+                    saveStatusText.textContent = "Kaydedildi";
+                    // Arka planda DB güncellendi, sol menüyü yenile ki sıralama güncellensin
+                    loadSubjects();
+                } catch (error) {
+                    console.error(error);
+                    saveStatusText.textContent = "Hata! Kaydedilemedi";
+                }
+            }, 800);
+        });
+
+        // Tab tuşu defterde boşluk bıraksın
+        paper.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                document.execCommand('insertHTML', false, '&#009');
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", initDB);
+    </script>
+</body>
+</html>
