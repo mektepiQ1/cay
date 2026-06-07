@@ -660,6 +660,19 @@
                 display: block; /* Hamburger butonu göster */
             }
             
+            /* Karşılama ekranı mobil menü butonu konumu */
+            .welcome-menu-btn {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                background-color: white;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 8px 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                z-index: 10;
+            }
+
             .sidebar {
                 position: fixed;
                 left: 0;
@@ -727,6 +740,7 @@
 
         <main class="editor-area">
             <div id="welcomeScreen" class="welcome-screen">
+                <button id="welcomeMobileMenuBtn" class="mobile-menu-btn welcome-menu-btn"><i class="fas fa-bars"></i></button>
                 <div class="icon-wrapper">
                     <i class="fas fa-pen-fancy"></i>
                 </div>
@@ -851,6 +865,7 @@
         const sidebar = document.getElementById("sidebar");
         const sidebarOverlay = document.getElementById("sidebarOverlay");
         const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+        const welcomeMobileMenuBtn = document.getElementById("welcomeMobileMenuBtn");
 
         const createNewSubjectBtn = document.getElementById("createNewSubjectBtn");
         const newSubjectInput = document.getElementById("newSubjectInput");
@@ -896,6 +911,7 @@
         };
 
         mobileMenuBtn.addEventListener("click", toggleSidebar);
+        welcomeMobileMenuBtn.addEventListener("click", toggleSidebar);
         sidebarOverlay.addEventListener("click", closeSidebar);
 
         // --- ONAY MODAL (CONFIRM) İŞLEMLERİ ---
