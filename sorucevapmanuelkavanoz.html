@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Soru Kavanozu | Akıllı Cevap Kontrolü</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f4f9;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #1e2a3a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            color: #1e3a4d;
+        }
+        .header p {
+            color: #4a627a;
+            margin-top: 0.4rem;
+            font-size: 0.95rem;
+        }
+
+        .two-columns {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .column {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            border: 1px solid #e9edf2;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .jar-info {
+            text-align: center;
+            background: #fafcfd;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eef2f8;
+        }
+        .question-count {
+            font-size: 2.8rem;
+            font-weight: 500;
+            color: #1e5a7a;
+            line-height: 1;
+        }
+        .jar-label {
+            font-size: 0.85rem;
+            color: #5b7c9c;
+            margin-top: 0.3rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.7rem;
+            margin: 1rem 0 0.5rem;
+            flex-wrap: wrap;
+        }
+        .input-group input, .input-group textarea {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #dce3ec;
+            border-radius: 1.2rem;
+            font-size: 0.95rem;
+            background: #ffffff;
+            transition: 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+        .input-group input:focus, .input-group textarea:focus {
+            border-color: #7c9ec0;
+            box-shadow: 0 0 0 3px rgba(100, 140, 170, 0.1);
+        }
+        .input-group textarea {
+            resize: vertical;
+        }
+
+        button {
+            background: #eef2f7;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+            color: #1e3a4d;
+        }
+        button.primary {
+            background: #1e5a7a;
+            color: white;
+        }
+        button.primary:hover {
+            background: #144a66;
+        }
+        button.secondary {
+            background: #e9edf2;
+        }
+        button.secondary:hover {
+            background: #dfe4ea;
+        }
+        button.warning {
+            background: #fff0e0;
+            color: #b45f2a;
+        }
+        button.warning:hover {
+            background: #ffe4ce;
+        }
+
+        /* Çekilen soru ve cevap alanı */
+        .picked-area {
+            margin-top: 1.5rem;
+            background: #fefaf5;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            border-left: 3px solid #e0aa7a;
+        }
+        .picked-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #b47c48;
+        }
+        .picked-question {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            word-break: break-word;
+            color: #2a4b6e;
+            background: #fff3e6;
+            padding: 0.8rem;
+            border-radius: 1rem;
+        }
+        .answer-area {
+            margin-top: 0.8rem;
+        }
+        .answer-area label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #5b7c9c;
+        }
+        .answer-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #dce3ec;
+            border-radius: 1.2rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            margin-top: 0.4rem;
+            background: white;
+        }
+        .answer-input:focus {
+            outline: none;
+            border-color: #7c9ec0;
+            box-shadow: 0 0 0 3px rgba(100, 140, 170, 0.1);
+        }
+        .check-btn {
+            margin-top: 0.8rem;
+            width: 100%;
+            background: #1e5a7a;
+            color: white;
+        }
+        .empty-pick {
+            color: #8fa0b0;
+            font-style: italic;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        /* çekmece */
+        .drawer {
+            background: #0b2b3b;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #2c4f66;
+        }
+        .drawer-header {
+            background: #0f3447;
+            padding: 1.2rem 1.5rem;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .drawer-header:hover {
+            background: #124d66;
+        }
+        .drawer-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #f0f6fc;
+        }
+        .drawer-indicator {
+            font-size: 1.2rem;
+            color: #bdd9ec;
+            transition: transform 0.25s ease;
+        }
+        .drawer-indicator.open {
+            transform: rotate(180deg);
+        }
+        .drawer-content {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.25s ease;
+            background: #0b2b3b;
+            padding: 0 1.5rem;
+        }
+        .drawer-content.open {
+            max-height: 480px;
+            opacity: 1;
+            padding: 0 1.5rem 1.5rem 1.5rem;
+        }
+        .drawer .questions-list {
+            max-height: 320px;
+            overflow-y: auto;
+            margin: 0.5rem 0;
+            padding-right: 4px;
+        }
+        .drawer .question-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid #2a5a74;
+            border-radius: 1rem;
+            margin-bottom: 0.7rem;
+            padding: 0.8rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .drawer .question-info {
+            flex: 1;
+        }
+        .drawer .question-text {
+            color: #eef4fc;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+        .drawer .question-answer {
+            color: #aacce4;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+        .drawer .delete-btn {
+            background: rgba(220, 60, 50, 0.2);
+            color: #ffb4aa;
+            padding: 0.3rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+        .drawer .delete-btn:hover {
+            background: rgba(220, 60, 50, 0.5);
+            color: white;
+        }
+        .drawer .empty-questions {
+            text-align: center;
+            padding: 1.5rem;
+            color: #bdd4e3;
+            font-style: italic;
+        }
+        .drawer .clear-all {
+            margin-top: 1rem;
+        }
+        .drawer .clear-all button {
+            background: #2d5a74;
+            color: #f0f6fc;
+            width: 100%;
+        }
+        .drawer .clear-all button:hover {
+            background: #3e718f;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+            animation: modalPop 0.2s ease;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .modal-message {
+            color: #4a627a;
+            margin-bottom: 1.5rem;
+        }
+        .modal-button {
+            background: #1e5a7a;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #8ba0b0;
+            border-top: 1px solid #dce5ef;
+            padding-top: 1.5rem;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 1.2rem;
+            }
+            .two-columns {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📦 Soru Kavanozu</h1>
+        <p>Soru eklerken doğru cevabını da gir. Soru çek, cevabını yaz (büyük/küçük harf, Türkçe karakter fark etmez).</p>
+    </div>
+
+    <div class="two-columns">
+        <!-- Sol sütun -->
+        <div class="column">
+            <div class="card">
+                <div class="card-title">📝 Soru Ekle</div>
+                <div class="jar-info">
+                    <div class="question-count" id="questionCount">0</div>
+                    <div class="jar-label">kavanozda soru var</div>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 500;">Soru metni</label>
+                    <div class="input-group">
+                        <textarea id="questionInput" rows="2" placeholder="Örn: Çiçeklerin solmasını önlemek için ne yapmalıyız?"></textarea>
+                    </div>
+                    
+                    <label style="font-size: 0.85rem; font-weight: 500; margin-top: 0.5rem;">Doğru cevap</label>
+                    <div class="input-group">
+                        <input type="text" id="answerInputField" placeholder="Örn: Düzenli sulamalıyız">
+                    </div>
+                    
+                    <button id="addBtn" class="primary" style="width: 100%; margin-top: 0.5rem;">Kavanoza ekle</button>
+                    <small style="font-size: 0.7rem; color: #7e9ab0; display: block; margin-top: 0.5rem;">İstediğin kadar soru ekleyebilirsin.</small>
+                </div>
+            </div>
+
+            <!-- Soru Çekme ve Cevap verme kartı -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-title">🎲 Soru Çek & Cevap Ver</div>
+                <button id="pickBtn" class="secondary" style="width: 100%;">Rastgele soru çek</button>
+                
+                <div id="pickedContainer" class="picked-area" style="margin-top: 1.2rem;">
+                    <div class="picked-label">Çekilen Soru</div>
+                    <div id="pickedQuestion" class="picked-question"></div>
+                    <div id="emptyPickMessage" class="empty-pick">Henüz soru çekilmedi.</div>
+                    
+                    <div class="answer-area" id="answerArea" style="display: none;">
+                        <label for="userAnswer">✍️ Cevabınızı yazın:</label>
+                        <textarea id="userAnswer" class="answer-input" rows="3" placeholder="Cevabınızı buraya yazın..."></textarea>
+                        <button id="checkAnswerBtn" class="check-btn">Cevabı kontrol et</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ sütun: çekmece -->
+        <div class="column">
+            <div class="drawer">
+                <div class="drawer-header" id="drawerHeader">
+                    <span class="drawer-title">📋 Kavanozdaki sorular (cevaplarıyla)</span>
+                    <span class="drawer-indicator" id="drawerIndicator">▼</span>
+                </div>
+                <div class="drawer-content" id="drawerContent">
+                    <div id="drawerQuestionsList" class="questions-list">
+                        <div class="empty-questions">Kavanoz boş, ilk soruyu ekle.</div>
+                    </div>
+                    <div class="clear-all">
+                        <button id="clearAllBtn" class="warning">Tüm soruları temizle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        Sorular ve cevapları tarayıcı hafızasında saklanır · Sayfayı kapatsan bile kaybolmaz.
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-icon" id="modalIcon">🎉</div>
+        <div class="modal-title" id="modalTitle">Tebrikler!</div>
+        <div class="modal-message" id="modalMessage"></div>
+        <button class="modal-button" id="closeModalBtn">Kapat</button>
+    </div>
+</div>
+
+<script>
+    // ----- SORU KAVANOZU (SORU + CEVAP) -----
+    let questions = [];   // { id: number, text: string, answer: string }
+    const STORAGE_KEY = "question_jar_with_answers";
+
+    // DOM
+    const questionCountSpan = document.getElementById('questionCount');
+    const questionInput = document.getElementById('questionInput');
+    const answerInputField = document.getElementById('answerInputField');
+    const addBtn = document.getElementById('addBtn');
+    const pickBtn = document.getElementById('pickBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const pickedQuestionDiv = document.getElementById('pickedQuestion');
+    const emptyPickMessage = document.getElementById('emptyPickMessage');
+    const answerArea = document.getElementById('answerArea');
+    const userAnswer = document.getElementById('userAnswer');
+    const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+    
+    // Çekmece
+    const drawerHeader = document.getElementById('drawerHeader');
+    const drawerContent = document.getElementById('drawerContent');
+    const drawerIndicator = document.getElementById('drawerIndicator');
+    const drawerQuestionsList = document.getElementById('drawerQuestionsList');
+
+    // Modal
+    const modal = document.getElementById('resultModal');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    let isDrawerOpen = false;
+    let currentPickedQuestion = null;  // çekilen sorunun objesi
+
+    // ----- AKILLI NORMALİZASYON FONKSİYONU (Türkçe karakter + küçük harf) -----
+    function normalizeText(str) {
+        if (!str) return "";
+        // Önce tüm harfleri küçük yap
+        let normalized = str.toLowerCase().trim();
+        // Türkçe karakter dönüşümleri
+        const turkishMap = {
+            'ğ': 'g', 'ü': 'u', 'ş': 's', 'ı': 'i', 'ö': 'o', 'ç': 'c',
+            'â': 'a', 'î': 'i', 'û': 'u'
+        };
+        normalized = normalized.replace(/[ğüşıöçâîû]/g, match => turkishMap[match] || match);
+        // Fazla boşlukları temizle (birden fazla boşluğu tek boşluk yap)
+        normalized = normalized.replace(/\s+/g, ' ');
+        return normalized;
+    }
+
+    // Modal fonksiyonları
+    function showModal(isCorrect, correctAnswer = "") {
+        if (isCorrect) {
+            modalIcon.innerText = "🎉✨";
+            modalTitle.innerText = "Tebrikler!";
+            modalMessage.innerText = "Cevabın tamamen doğru! Harika iş çıkardın.";
+        } else {
+            modalIcon.innerText = "📚";
+            modalTitle.innerText = "Yanlış Cevap";
+            modalMessage.innerText = `Doğru cevap: "${correctAnswer}"\nBir sonraki sefere daha iyi!`;
+        }
+        modal.style.display = "flex";
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    // Kaydet/Yükle
+    function saveToLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(questions));
+    }
+
+    function loadFromLocal() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) questions = parsed;
+                else questions = [];
+            } catch(e) { questions = []; }
+        } else {
+            questions = [];
+            saveToLocal();
+        }
+        renderDrawerQuestionsList();
+        updateQuestionCount();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderDrawerQuestionsList() {
+        if (questions.length === 0) {
+            drawerQuestionsList.innerHTML = '<div class="empty-questions">📭 Kavanoz boş, ilk soruyu ekle.</div>';
+            return;
+        }
+        let html = '';
+        questions.forEach(q => {
+            const safeText = escapeHtml(q.text);
+            const safeAnswer = escapeHtml(q.answer);
+            html += `
+                <div class="question-item" data-id="${q.id}">
+                    <div class="question-info">
+                        <div class="question-text">❓ ${safeText}</div>
+                        <div class="question-answer">✓ Cevap: ${safeAnswer}</div>
+                    </div>
+                    <button class="delete-btn" data-id="${q.id}" title="Soruyu kaldır">✖ Sil</button>
+                </div>
+            `;
+        });
+        drawerQuestionsList.innerHTML = html;
+
+        document.querySelectorAll('#drawerQuestionsList .delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = parseInt(btn.getAttribute('data-id'));
+                deleteQuestionById(id);
+            });
+        });
+    }
+
+    function deleteQuestionById(id) {
+        const deletedQuestion = questions.find(q => q.id === id);
+        if (!deletedQuestion) return;
+        questions = questions.filter(q => q.id !== id);
+        saveToLocal();
+        renderDrawerQuestionsList();
+        updateQuestionCount();
+        // Eğer çekilen soru silindiyse temizle
+        if (currentPickedQuestion && currentPickedQuestion.id === id) {
+            clearPickedDisplay();
+            currentPickedQuestion = null;
+        }
+    }
+
+    function updateQuestionCount() {
+        questionCountSpan.innerText = questions.length;
+    }
+
+    function clearPickedDisplay() {
+        pickedQuestionDiv.innerText = '';
+        emptyPickMessage.style.display = 'block';
+        pickedQuestionDiv.style.display = 'none';
+        answerArea.style.display = 'none';
+        userAnswer.value = '';
+        currentPickedQuestion = null;
+    }
+
+    function showPickedQuestion(questionObj) {
+        pickedQuestionDiv.innerText = questionObj.text;
+        pickedQuestionDiv.style.display = 'block';
+        emptyPickMessage.style.display = 'none';
+        answerArea.style.display = 'block';
+        userAnswer.value = '';
+        userAnswer.focus();
+        currentPickedQuestion = questionObj;
+    }
+
+    // Yeni soru ekle
+    function addQuestion() {
+        let text = questionInput.value.trim();
+        let answer = answerInputField.value.trim();
+        
+        if (text === "") {
+            alert("Lütfen bir soru yazın.");
+            return;
+        }
+        if (answer === "") {
+            alert("Lütfen bu sorunun doğru cevabını yazın.");
+            return;
+        }
+        
+        const newQuestion = {
+            id: Date.now(),
+            text: text,
+            answer: answer
+        };
+        questions.push(newQuestion);
+        saveToLocal();
+        renderDrawerQuestionsList();
+        updateQuestionCount();
+        questionInput.value = "";
+        answerInputField.value = "";
+        questionInput.focus();
+    }
+
+    // Rastgele soru çek
+    function pickRandomQuestion() {
+        if (questions.length === 0) {
+            alert("Kavanozda hiç soru yok. Önce bir soru ekleyin.");
+            clearPickedDisplay();
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        const selected = questions[randomIndex];
+        showPickedQuestion(selected);
+    }
+
+    // ----- CEVAP KONTROLÜ (NORMALİZE EDEREK) -----
+    function checkAnswer() {
+        if (!currentPickedQuestion) {
+            alert("Lütfen önce bir soru çekin.");
+            return;
+        }
+        const userAnswerText = userAnswer.value.trim();
+        if (userAnswerText === "") {
+            alert("Lütfen cevabınızı yazın.");
+            return;
+        }
+        
+        // Normalize et (küçük harf, Türkçe karakter dönüşümü, boşluk düzenleme)
+        const normalizedUser = normalizeText(userAnswerText);
+        const normalizedCorrect = normalizeText(currentPickedQuestion.answer);
+        
+        const isCorrect = (normalizedUser === normalizedCorrect);
+        
+        if (isCorrect) {
+            showModal(true);
+        } else {
+            showModal(false, currentPickedQuestion.answer);
+        }
+    }
+
+    // Tüm soruları temizle
+    function clearAllQuestions() {
+        if (questions.length === 0) {
+            alert("Kavanoz zaten boş.");
+            return;
+        }
+        const confirmClear = confirm("Tüm soruları ve cevaplarını kalıcı olarak silmek istediğinize emin misiniz?");
+        if (confirmClear) {
+            questions = [];
+            saveToLocal();
+            renderDrawerQuestionsList();
+            updateQuestionCount();
+            clearPickedDisplay();
+            currentPickedQuestion = null;
+        }
+    }
+
+    // Çekmece aç/kapa
+    function toggleDrawer() {
+        if (isDrawerOpen) {
+            drawerContent.classList.remove('open');
+            drawerIndicator.classList.remove('open');
+            isDrawerOpen = false;
+        } else {
+            drawerContent.classList.add('open');
+            drawerIndicator.classList.add('open');
+            isDrawerOpen = true;
+        }
+    }
+
+    function handleEnterOnQuestion(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addQuestion();
+        }
+    }
+
+    function init() {
+        loadFromLocal();
+        addBtn.addEventListener('click', addQuestion);
+        pickBtn.addEventListener('click', pickRandomQuestion);
+        checkAnswerBtn.addEventListener('click', checkAnswer);
+        clearAllBtn.addEventListener('click', clearAllQuestions);
+        drawerHeader.addEventListener('click', toggleDrawer);
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        
+        questionInput.addEventListener('keypress', handleEnterOnQuestion);
+        
+        drawerContent.classList.remove('open');
+        drawerIndicator.classList.remove('open');
+        isDrawerOpen = false;
+        clearPickedDisplay();
+    }
+
+    init();
+</script>
+</body>
+</html>
