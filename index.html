@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>e öğrenci</title>
+    
+    <!-- PWA Tanımlamaları -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0A192F"> <!-- Profesyonel Lacivert -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="log.jpg">
+
+    <style>
+        :root {
+            --primary-bg: #0A192F; /* Derin Lacivert */
+            --secondary-bg: #112240; /* Açık Lacivert */
+            --text-main: #CCD6F6;
+            --text-muted: #8892B0;
+            --white: #FFFFFF;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            /* Şık ve profesyonel degrade arka plan */
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #020c1b 100%); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--white);
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Modern Kart Tasarımı */
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo {
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            border: 3px solid var(--glass-border);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            background-color: var(--white); /* Transparan logolar için beyaz zemin desteği */
+        }
+
+        .brand-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        /* Temel Buton Stili */
+        .btn {
+            border: none;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* Birincil Buton (Giriş Yap) */
+        .btn-primary {
+            background-color: var(--white);
+            color: var(--primary-bg);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background-color: #f0f4f8;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        /* İkincil Buton (Yükle) */
+        #installBtn {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--text-muted);
+            display: none; /* JavaScript ile gösterilecek */
+        }
+
+        #installBtn:hover {
+            border-color: var(--white);
+            color: var(--white);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        #installBtn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="log.jpg" alt="e öğrenci Logo" class="logo">
+        <h1 class="brand-title">e öğrenci</h1>
+
+        <div class="btn-container">
+            <!-- InfinityFree paneline yönlendiren ana bağlantı -->
+            <a href="https://ogarayuz.infinityfree.io/ogrenci.php" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Giriş Yap</a>
+            <button id="installBtn" class="btn">Uygulamayı Yükle</button>
+        </div>
+    </div>
+
+    <script>
+        // Service Worker Kaydı
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker başarıyla kaydedildi:', reg.scope))
+                    .catch(err => console.error('Service Worker kayıt hatası:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        // Kurulum İstemi (PWA)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        // Yükle Butonu Tıklama Olayı
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Kullanıcı kurulumu kabul etti.');
+                }
+                deferredPrompt = null;
+            } else {
+                alert('Uygulama zaten yüklü olabilir. Lütfen cihazınızın ana ekranını kontrol edin.');
+            }
+        });
+
+        // Kurulum Tamamlandığında
+        window.addEventListener('appinstalled', () => {
+            installBtn.textContent = "Kurulum Tamamlandı ✓";
+            installBtn.style.backgroundColor = "rgba(46, 204, 113, 0.2)";
+            installBtn.style.color = "#2ecc71";
+            installBtn.style.borderColor = "#2ecc71";
+            installBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>
