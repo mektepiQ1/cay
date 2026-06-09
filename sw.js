@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ogrenci-app-cache-v3';
+const CACHE_NAME = 'ogrenci-app-cache-v4';
 const urlsToCache = [
   'index.html',
   'log.jpg',
@@ -8,20 +8,13 @@ const urlsToCache = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+      .then(cache => cache.addAll(urlsToCache))
   );
 });
 
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+      .then(response => response || fetch(event.request))
   );
 });
