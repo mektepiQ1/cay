@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Not Kavanozu | Sınırsız Not</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f4f9;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #1e2a3a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            color: #1e3a4d;
+        }
+        .header p {
+            color: #4a627a;
+            margin-top: 0.4rem;
+            font-size: 0.95rem;
+        }
+
+        .two-columns {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .column {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            border: 1px solid #e9edf2;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .jar-info {
+            text-align: center;
+            background: #fafcfd;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eef2f8;
+        }
+        .note-count {
+            font-size: 2.8rem;
+            font-weight: 500;
+            color: #1e5a7a;
+            line-height: 1;
+        }
+        .jar-label {
+            font-size: 0.85rem;
+            color: #5b7c9c;
+            margin-top: 0.3rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.7rem;
+            margin: 1rem 0 0.5rem;
+            flex-wrap: wrap;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #dce3ec;
+            border-radius: 1.2rem;
+            font-size: 0.95rem;
+            background: #ffffff;
+            transition: 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+        .input-group input:focus {
+            border-color: #7c9ec0;
+            box-shadow: 0 0 0 3px rgba(100, 140, 170, 0.1);
+        }
+
+        button {
+            background: #eef2f7;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+            color: #1e3a4d;
+        }
+        button.primary {
+            background: #1e5a7a;
+            color: white;
+        }
+        button.primary:hover {
+            background: #144a66;
+        }
+        button.secondary {
+            background: #e9edf2;
+        }
+        button.secondary:hover {
+            background: #dfe4ea;
+        }
+        button.danger {
+            background: #fae6e5;
+            color: #a13e3a;
+        }
+        button.danger:hover {
+            background: #f5d8d6;
+        }
+        button.warning {
+            background: #fff0e0;
+            color: #b45f2a;
+        }
+        button.warning:hover {
+            background: #ffe4ce;
+        }
+
+        .picked-area {
+            margin-top: 1.5rem;
+            background: #fefaf5;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            border-left: 3px solid #e0aa7a;
+        }
+        .picked-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #b47c48;
+        }
+        .picked-text {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            word-break: break-word;
+            color: #2a4b6e;
+        }
+        .empty-pick {
+            color: #8fa0b0;
+            font-style: italic;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        /* çekmece */
+        .drawer {
+            background: #0b2b3b;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #2c4f66;
+        }
+        .drawer-header {
+            background: #0f3447;
+            padding: 1.2rem 1.5rem;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .drawer-header:hover {
+            background: #124d66;
+        }
+        .drawer-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #f0f6fc;
+        }
+        .drawer-indicator {
+            font-size: 1.2rem;
+            color: #bdd9ec;
+            transition: transform 0.25s ease;
+        }
+        .drawer-indicator.open {
+            transform: rotate(180deg);
+        }
+        .drawer-content {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.25s ease;
+            background: #0b2b3b;
+            padding: 0 1.5rem;
+        }
+        .drawer-content.open {
+            max-height: 480px;
+            opacity: 1;
+            padding: 0 1.5rem 1.5rem 1.5rem;
+        }
+        .drawer .notes-list {
+            max-height: 320px;
+            overflow-y: auto;
+            margin: 0.5rem 0;
+            padding-right: 4px;
+        }
+        .drawer .note-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid #2a5a74;
+            border-radius: 1rem;
+            margin-bottom: 0.7rem;
+            padding: 0.8rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drawer .note-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4b8aac;
+        }
+        .drawer .note-text {
+            color: #eef4fc;
+            font-size: 0.9rem;
+            word-break: break-word;
+            padding-right: 0.8rem;
+        }
+        .drawer .delete-btn {
+            background: rgba(220, 60, 50, 0.2);
+            color: #ffb4aa;
+            padding: 0.3rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+        .drawer .delete-btn:hover {
+            background: rgba(220, 60, 50, 0.5);
+            color: white;
+        }
+        .drawer .empty-notes {
+            text-align: center;
+            padding: 1.5rem;
+            color: #bdd4e3;
+            font-style: italic;
+        }
+        .drawer .clear-all {
+            margin-top: 1rem;
+        }
+        .drawer .clear-all button {
+            background: #2d5a74;
+            color: #f0f6fc;
+            width: 100%;
+        }
+        .drawer .clear-all button:hover {
+            background: #3e718f;
+        }
+        .drawer .notes-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .drawer .notes-list::-webkit-scrollbar-track {
+            background: #1f4960;
+            border-radius: 10px;
+        }
+        .drawer .notes-list::-webkit-scrollbar-thumb {
+            background: #6aa1bd;
+            border-radius: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #8ba0b0;
+            border-top: 1px solid #dce5ef;
+            padding-top: 1.5rem;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 1.2rem;
+            }
+            .two-columns {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            .drawer-content.open {
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📦 Sınırsız Not Kavanozu</h1>
+        <p>İstediğin kadar not yaz, kavanoza at, sonra rastgele bir not çek. <br> Sağdaki çekmeceyi açarak tüm notları görebilirsin.</p>
+    </div>
+
+    <div class="two-columns">
+        <!-- Sol sütun -->
+        <div class="column">
+            <div class="card">
+                <div class="card-title">📝 Kavanoz</div>
+                <div class="jar-info">
+                    <div class="note-count" id="noteCount">0</div>
+                    <div class="jar-label">not kavanozda</div>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 500;">Yeni not ekle (sınırsız)</label>
+                    <div class="input-group">
+                        <input type="text" id="noteInput" placeholder="Örn: JavaScript öğren, kitap oku, alışveriş listesi..." style="max-width: none;">
+                        <button id="addBtn" class="primary">Kavanoza at</button>
+                    </div>
+                    <small style="font-size: 0.7rem; color: #7e9ab0;">Not uzunluğu sınırsız, istediğin kadar yazabilirsin.</small>
+                </div>
+
+                <div>
+                    <button id="pickBtn" class="secondary" style="width: 100%; margin-top: 1rem;">🎲 Rastgele not çek</button>
+                    <div id="pickedContainer" class="picked-area" style="margin-top: 1.2rem;">
+                        <div class="picked-label">Çekilen not</div>
+                        <div id="pickedText" class="picked-text"></div>
+                        <div id="emptyPickMessage" class="empty-pick">Henüz not çekilmedi.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ sütun: çekmece -->
+        <div class="column">
+            <div class="drawer">
+                <div class="drawer-header" id="drawerHeader">
+                    <span class="drawer-title">📋 Kavanozdaki notlar</span>
+                    <span class="drawer-indicator" id="drawerIndicator">▼</span>
+                </div>
+                <div class="drawer-content" id="drawerContent">
+                    <div id="drawerNotesList" class="notes-list">
+                        <div class="empty-notes">Kavanoz boş, ilk notunu ekle.</div>
+                    </div>
+                    <div class="clear-all">
+                        <button id="clearAllBtn" class="warning">Tüm notları temizle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        Notlar tarayıcı hafızasında saklanır · Sayfayı kapatsan bile notların kaybolmaz · Sınırsız not ekleyebilirsin.
+    </div>
+</div>
+
+<script>
+    // ----- SINIRSIZ NOT KAVANOZU (BAŞLANGIÇTA BOŞ) -----
+    let notes = [];
+    const STORAGE_KEY = "simple_note_jar_unlimited";
+
+    // DOM
+    const noteCountSpan = document.getElementById('noteCount');
+    const noteInput = document.getElementById('noteInput');
+    const addBtn = document.getElementById('addBtn');
+    const pickBtn = document.getElementById('pickBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const pickedTextSpan = document.getElementById('pickedText');
+    const emptyPickMessage = document.getElementById('emptyPickMessage');
+    
+    // Çekmece
+    const drawerHeader = document.getElementById('drawerHeader');
+    const drawerContent = document.getElementById('drawerContent');
+    const drawerIndicator = document.getElementById('drawerIndicator');
+    const drawerNotesList = document.getElementById('drawerNotesList');
+
+    let isDrawerOpen = false;
+
+    // Kaydet/Yükle
+    function saveToLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    }
+
+    function loadFromLocal() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) notes = parsed;
+                else notes = [];
+            } catch(e) { notes = []; }
+        } else {
+            // Başlangıçta kesinlikle hiç not yok
+            notes = [];
+            saveToLocal();
+        }
+        renderDrawerNotesList();
+        updateNoteCount();
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderDrawerNotesList() {
+        if (notes.length === 0) {
+            drawerNotesList.innerHTML = '<div class="empty-notes">📭 Kavanoz boş, ilk notunu ekle.</div>';
+            return;
+        }
+        let html = '';
+        notes.forEach(note => {
+            const safeText = escapeHtml(note.text);
+            html += `
+                <div class="note-item" data-id="${note.id}">
+                    <span class="note-text">${safeText}</span>
+                    <button class="delete-btn" data-id="${note.id}" title="Notu kaldır">✖ Sil</button>
+                </div>
+            `;
+        });
+        drawerNotesList.innerHTML = html;
+
+        document.querySelectorAll('#drawerNotesList .delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = parseInt(btn.getAttribute('data-id'));
+                deleteNoteById(id);
+            });
+        });
+    }
+
+    function deleteNoteById(id) {
+        const deletedNote = notes.find(n => n.id === id);
+        if (!deletedNote) return;
+        notes = notes.filter(n => n.id !== id);
+        saveToLocal();
+        renderDrawerNotesList();
+        updateNoteCount();
+        const currentPicked = pickedTextSpan.innerText;
+        if (currentPicked === deletedNote.text && emptyPickMessage.style.display !== 'block') {
+            clearPickedDisplay();
+        }
+    }
+
+    function updateNoteCount() {
+        noteCountSpan.innerText = notes.length;
+    }
+
+    function clearPickedDisplay() {
+        pickedTextSpan.innerText = '';
+        emptyPickMessage.style.display = 'block';
+        pickedTextSpan.style.display = 'none';
+    }
+
+    function showPickedNote(text) {
+        pickedTextSpan.innerText = text;
+        pickedTextSpan.style.display = 'block';
+        emptyPickMessage.style.display = 'none';
+    }
+
+    // Sınırsız not ekleme: hiçbir karakter sınırı yok, sadece boşluk kontrolü
+    function addNote() {
+        let text = noteInput.value;
+        if (text.trim() === "") {
+            alert("Lütfen bir not yazın.");
+            return;
+        }
+        const newNote = {
+            id: Date.now(),
+            text: text
+        };
+        notes.push(newNote);
+        saveToLocal();
+        renderDrawerNotesList();
+        updateNoteCount();
+        noteInput.value = "";
+        noteInput.focus();
+    }
+
+    function pickRandomNote() {
+        if (notes.length === 0) {
+            alert("Kavanozda hiç not yok. Önce bir not ekleyin.");
+            clearPickedDisplay();
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * notes.length);
+        const selected = notes[randomIndex];
+        showPickedNote(selected.text);
+    }
+
+    function clearAllNotes() {
+        if (notes.length === 0) {
+            alert("Kavanoz zaten boş.");
+            return;
+        }
+        const confirmClear = confirm("Tüm notları kalıcı olarak silmek istediğinize emin misiniz?");
+        if (confirmClear) {
+            notes = [];
+            saveToLocal();
+            renderDrawerNotesList();
+            updateNoteCount();
+            clearPickedDisplay();
+        }
+    }
+
+    function toggleDrawer() {
+        if (isDrawerOpen) {
+            drawerContent.classList.remove('open');
+            drawerIndicator.classList.remove('open');
+            isDrawerOpen = false;
+        } else {
+            drawerContent.classList.add('open');
+            drawerIndicator.classList.add('open');
+            isDrawerOpen = true;
+        }
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addNote();
+        }
+    }
+
+    function init() {
+        loadFromLocal();
+        addBtn.addEventListener('click', addNote);
+        pickBtn.addEventListener('click', pickRandomNote);
+        clearAllBtn.addEventListener('click', clearAllNotes);
+        noteInput.addEventListener('keypress', handleEnter);
+        drawerHeader.addEventListener('click', toggleDrawer);
+        
+        drawerContent.classList.remove('open');
+        drawerIndicator.classList.remove('open');
+        isDrawerOpen = false;
+        clearPickedDisplay();
+    }
+
+    init();
+</script>
+</body>
+</html>
