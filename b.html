@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>e-Öğrenci Diyet Koçu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .luxury-heading { font-family: 'Playfair Display', serif; color: #1e3a8a; }
+        .glass-panel { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .glass-card { background: #ffffff; border: 1px solid #e2e8f0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card:hover { background: #f1f5f9; border-color: rgba(30, 58, 138, 0.2); transform: translateY(-2px); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #172554; }
+        @media print {
+            body { background: white; color: black; }
+            .no-print { display: none !important; }
+            #dietOutput { position: absolute; left: 0; top: 0; width: 100%; color: black; }
+        }
+        .active-tab { background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); color: white; box-shadow: 0 4px 20px rgba(30, 58, 138, 0.2); }
+        .day-tab-active { background-color: rgba(30, 58, 138, 0.1); border-color: #1e3a8a; color: #1e3a8a; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-4 md:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 backdrop-blur-md bg-opacity-90">
+        <div class="flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-900 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
+                <i class="fa-solid fa-utensils text-lg"></i>
+            </div>
+            <div>
+                <span class="text-[10px] uppercase tracking-[0.25em] text-blue-800 font-extrabold block">Yemek ve Diyet Yapay Zekası</span>
+                <h1 class="text-2xl font-extrabold tracking-tight text-blue-950 luxury-heading">e-Öğrenci <span class="italic font-light text-blue-700">ve Diyet Koçu</span></h1>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 no-print">
+            <div id="phaseBadge" class="bg-blue-50 border border-blue-200 text-blue-900 text-xs font-semibold px-3 py-1.5 rounded-lg">Aşama: Besin Dengesi</div>
+            <div class="flex items-center space-x-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-[10px] font-bold text-emerald-700 tracking-wider uppercase">Sistem Aktif</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto w-full px-4 md:px-8 pt-6 pb-2 no-print">
+        <div class="grid grid-cols-2 gap-2 p-1.5 bg-white border border-slate-200 rounded-2xl">
+            <button id="tabDietBtn" class="active-tab text-xs md:text-sm py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-all duration-300 cursor-pointer"><i class="fa-solid fa-calendar-days"></i> <span>1. Beslenme Programı</span></button>
+            <button id="tabFeedbackBtn" class="text-slate-600 hover:text-blue-900 text-xs md:text-sm py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-all duration-300 cursor-pointer" disabled><i class="fa-solid fa-sliders"></i> <span>2. Programı Güncelle</span></button>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
+        
+        <section class="lg:col-span-4 flex flex-col no-print">
+            <div class="glass-panel rounded-2xl p-6 space-y-6 sticky top-28">
+                <div>
+                    <h2 class="text-lg font-bold text-blue-950 tracking-tight luxury-heading flex items-center gap-2"><i class="fa-solid fa-user text-blue-900"></i> Profil Bilgileri</h2>
+                    <p class="text-xs text-slate-500 mt-1">Sizin için en uygun programı hazırlayabilmemiz için bilgilerinizi girin.</p>
+                </div>
+                
+                <div class="space-y-4 text-xs">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1.5">Yaş</label>
+                            <input type="number" id="age" value="21" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1.5">Cinsiyet</label>
+                            <select id="gender" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                                <option value="female">Kadın</option>
+                                <option value="male" selected>Erkek</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1.5">Kilo (kg)</label>
+                            <input type="number" step="0.1" id="weight" value="74" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1.5">Boy (cm)</label>
+                            <input type="number" id="height" value="180" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 mb-1.5">Günlük Hareket Seviyeniz</label>
+                        <select id="activity" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                            <option value="1.2">Hareketsiz Yaşam</option>
+                            <option value="1.375" selected>Hafif Hareketli (Haftada 1-3 Gün Yürüyüş/Egzersiz)</option>
+                            <option value="1.55">Orta Hareketli (Haftada 3-5 Gün Spor)</option>
+                            <option value="1.725">Çok Hareketli (Her Gün Ağır Spor)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 mb-1.5">Ana Hedefiniz</label>
+                        <select id="goal" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                            <option value="weight-loss">Kilo Vermek / Yağ Yakmak</option>
+                            <option value="muscle-gain">Kilo Almak / Kas Yapmak</option>
+                            <option value="balanced">Mevcut Kiloyu Korumak / Sağlıklı Beslenmek</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 mb-1.5">Alerjiniz veya Sevmediğiniz Yiyecekler</label>
+                        <input type="text" id="restrictions" placeholder="Örn: Süt ürünleri dokunuyor, patlıcan sevilmiyor..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+
+                <button id="startCoachingBtn" class="w-full bg-gradient-to-r from-blue-800 to-blue-950 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-4 rounded-xl shadow-xl shadow-blue-900/10 transition-all duration-300 flex items-center justify-center gap-2 text-xs uppercase tracking-wider border border-blue-700/30"><i class="fa-solid fa-calculator"></i> Profesyonel Programı Başlat</button>
+            </div>
+        </section>
+
+        <section class="lg:col-span-8 flex flex-col space-y-6">
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 no-print">
+                <div class="glass-panel rounded-xl p-4 border-l-4 border-l-blue-700"><span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Hareketsiz Yakılan Kalori</span><span class="text-lg font-black text-slate-900 block mt-1" id="lblBmr">-- kcal</span></div>
+                <div class="glass-panel rounded-xl p-4 border-l-4 border-l-sky-700"><span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Günlük Toplam Harcanan Kalori</span><span class="text-lg font-black text-slate-900 block mt-1" id="lblTdee">-- kcal</span></div>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 border-l-4 border-l-blue-900"><span class="text-[9px] text-blue-800 font-bold uppercase tracking-wider">Almanız Gereken Günlük Kalori</span><span class="text-lg font-black text-blue-950 block mt-1" id="lblTarget">-- kcal</span></div>
+                <div class="glass-panel rounded-xl p-4 border-l-4 border-l-emerald-600"><span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Günlük Su İhtiyacı</span><span class="text-lg font-black text-slate-900 block mt-1" id="lblWater">-- L</span></div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-5 no-print">
+                <h4 class="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-900"></i> Günlük Alınacak Besin Dağılımı</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3 text-xs">
+                    <div>
+                        <div class="flex justify-between font-medium text-slate-700"><span>Karbonhidrat</span><span id="lblCarbs" class="font-bold text-amber-600">-- g</span></div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full mt-1.5 overflow-hidden"><div id="barCarbs" class="bg-gradient-to-r from-amber-500 to-orange-400 h-full transition-all duration-500" style="width:0%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between font-medium text-slate-700"><span>Protein</span><span id="lblProtein" class="font-bold text-rose-600">-- g</span></div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full mt-1.5 overflow-hidden"><div id="barProtein" class="bg-gradient-to-r from-rose-500 to-pink-500 h-full transition-all duration-500" style="width:0%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between font-medium text-slate-700"><span>Sağlıklı Yağ</span><span id="lblFat" class="font-bold text-emerald-600">-- g</span></div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full mt-1.5 overflow-hidden"><div id="barFat" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500" style="width:0%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl flex-1 flex flex-col min-h-[600px] overflow-hidden border-slate-200">
+                
+                <div id="dietView" class="p-6 flex-1 flex flex-col overflow-y-auto max-h-[650px]">
+                    <div id="complianceWrapper" class="hidden mb-6 bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center flex-wrap gap-3 no-print">
+                        <div>
+                            <h5 class="text-xs font-bold text-slate-900">Öğün ve Görev Takip Durumu</h5>
+                            <p class="text-[11px] text-slate-600">Yediğiniz öğünleri ve mentörünüzün özel aksiyon görevlerini işaretleyin.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-36 bg-slate-200 h-2 rounded-full overflow-hidden"><div id="complianceBar" class="bg-gradient-to-r from-blue-700 to-emerald-600 h-full w-0 transition-all duration-300"></div></div>
+                            <span id="complianceText" class="text-xs font-black text-blue-900">%0</span>
+                        </div>
+                    </div>
+
+                    <div id="initialState" class="text-center py-24 my-auto">
+                        <div class="w-16 h-16 bg-slate-100 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto text-blue-900 text-2xl shadow-sm"><i class="fa-solid fa-user-doctor"></i></div>
+                        <p class="mt-4 font-bold text-slate-900 text-base">Ultra-Profesyonel Adaptif Mentor Sistemi Hazır</p>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">Sol panelden bilgilerinizi girip sistemi çalıştırın. Yapay zeka, sadece fiziksel verilerinizi değil; hedefinizi ve psikolojik süreçlerinizi de analiz ederek **size özel koçluk şerbeti ve stratejik aksiyon adımları** üretecektir.</p>
+                        <div class="mt-4 flex flex-wrap justify-center gap-2 text-[10px] text-slate-600 font-medium">
+                            <span class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md"><i class="fa-solid fa-brain text-purple-600 mr-1"></i> Durumsal Psikoloji Analizi</span>
+                            <span class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Enerji Seviyesine Göre Şerbet</span>
+                            <span class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md"><i class="fa-solid fa-check-double text-emerald-600 mr-1"></i> Nokta Atışı Görev Atama</span>
+                        </div>
+                    </div>
+
+                    <div id="dietTabsWrapper" class="hidden flex gap-2 border-b border-slate-200 pb-3 mb-4 no-print"></div>
+                    <div id="dietOutput" class="hidden space-y-4"></div>
+                </div>
+
+                <div id="feedbackView" class="hidden p-6 flex-1 overflow-y-auto space-y-6 text-xs">
+                    <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl">
+                        <h4 class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-heart-pulse text-blue-900"></i> Nabız Ölçme ve Dinamik Yenileme Paneli</h4>
+                        <p class="text-slate-600 mt-1">Gelişiminizi, yorgunluk seviyenizi ve zihinsel durumunuzu ileterek yapay zekanın strateji değiştirmesini sağlayın.</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1.5">Güncel Kilonuz (kg)</label>
+                            <input type="number" step="0.1" id="feedbackWeight" placeholder="Örn: 73.2" class="w-full bg-white border border-slate-300 p-3.5 rounded-xl text-slate-900 font-semibold text-sm outline-none focus:ring-2 focus:ring-blue-500/50">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1.5">Gün İçindeki Enerji / Motivasyon Durumunuz</label>
+                            <select id="feedbackEnergy" class="w-full bg-white border border-slate-300 p-3.5 rounded-xl text-slate-900 font-semibold text-sm outline-none focus:ring-2 focus:ring-blue-500/50">
+                                <option value="Normal / Dengeli">Normal / Dengeli (Rutin Devam Ediyor)</option>
+                                <option value="Çok Enerjik">Çok Enerjik (Sınav bitti / Antrenman Modu Yüksek)</option>
+                                <option value="Halsiz / Yorgun">Halsiz / Yorgun / Stresli (Vizeler yaklaşıyor / Tükenmişlik)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-700 mb-1.5">Şefe ve Mentorunuza Ruh Hali / İlerleme Notunuz</label>
+                        <textarea id="feedbackNotes" rows="3" placeholder="Sınav haftasındayım çok stresliyim, tatlı krizleri başladı veya antrenmanlarda ağırlık artırıyorum..." class="w-full bg-white border border-slate-300 p-3.5 rounded-xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
+                    </div>
+                    <button id="extendProgramBtn" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl border border-blue-950 transition-all duration-200 flex items-center justify-center gap-2 text-xs uppercase tracking-wider"><i class="fa-solid fa-arrows-rotate"></i> Stratejiyi Yenile ve Nabza Göre Güncelle</button>
+                    <div>
+                        <h5 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Geçmiş Nabız ve Durum Kayıtları</h5>
+                        <div id="historyTimeline" class="space-y-2">
+                            <p class="text-slate-500 italic">Henüz geçmiş kayıt bulunmuyor.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dietActionsPanel" class="hidden border-t border-slate-200 p-4 flex justify-end no-print bg-slate-50">
+                    <button id="printDietBtn" class="text-xs bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2"><i class="fa-solid fa-print"></i> Programı ve Aksiyon Planını Yazdır</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_KEY = "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";
+
+        class DietEngine {
+            constructor(age, weight, height, gender, activity, goal) {
+                this.age = Number(age); 
+                this.weight = Number(weight); 
+                this.height = Number(height); 
+                this.gender = gender; 
+                this.activity = Number(activity); 
+                this.goal = goal;
+            }
+            getBMR() { 
+                return this.gender === 'male' 
+                    ? Math.round(10 * this.weight + 6.25 * this.height - 5 * this.age + 5) 
+                    : Math.round(10 * this.weight + 6.25 * this.height - 5 * this.age - 161); 
+            }
+            getTDEE() { return Math.round(this.getBMR() * this.activity); }
+            getTarget() { 
+                let t = this.getTDEE(); 
+                if(this.goal === 'weight-loss') return t - 500; 
+                if(this.goal === 'muscle-gain') return t + 300; 
+                return t; 
+            }
+            getMacros() {
+                let cal = this.getTarget(), ratio = { c:40, p:30, f:30 };
+                if(this.goal === 'weight-loss') ratio = { c:35, p:35, f:30 };
+                if(this.goal === 'muscle-gain') ratio = { c:45, p:30, f:25 };
+                return { 
+                    carbs: Math.round(cal * ratio.c / 100 / 4), 
+                    protein: Math.round(cal * ratio.p / 100 / 4), 
+                    fat: Math.round(cal * ratio.f / 100 / 9), 
+                    pc: ratio.c, pp: ratio.p, pf: ratio.f 
+                };
+            }
+        }
+
+        let programPhase = 1, historyLog = [], currentPlan = "", checkedState = {}, activeDayFilter = 1;
+        
+        const age = document.getElementById('age'), weight = document.getElementById('weight'), height = document.getElementById('height'), gender = document.getElementById('gender'), activity = document.getElementById('activity'), goal = document.getElementById('goal'), restrictions = document.getElementById('restrictions');
+        const lblBmr = document.getElementById('lblBmr'), lblTdee = document.getElementById('lblTdee'), lblTarget = document.getElementById('lblTarget'), lblWater = document.getElementById('lblWater');
+        const lblCarbs = document.getElementById('lblCarbs'), lblProtein = document.getElementById('lblProtein'), lblFat = document.getElementById('lblFat');
+        const barCarbs = document.getElementById('barCarbs'), barProtein = document.getElementById('barProtein'), barFat = document.getElementById('barFat');
+        
+        const updateUI = () => {
+            let e = new DietEngine(age.value, weight.value, height.value, gender.value, activity.value, goal.value);
+            lblBmr.innerText = e.getBMR() + " kcal"; 
+            lblTdee.innerText = e.getTDEE() + " kcal"; 
+            lblTarget.innerText = e.getTarget() + " kcal"; 
+            lblWater.innerText = (e.weight * 0.033).toFixed(1) + " L";
+            let m = e.getMacros(); 
+            lblCarbs.innerText = m.carbs + " g"; 
+            lblProtein.innerText = m.protein + " g"; 
+            lblFat.innerText = m.fat + " g";
+            barCarbs.style.width = m.pc + "%"; 
+            barProtein.style.width = m.pp + "%"; 
+            barFat.style.width = m.pf + "%";
+            saveLocal();
+        };
+        [age, weight, height, gender, activity, goal].forEach(i => i.addEventListener('input', updateUI));
+
+        const tabDiet = document.getElementById('tabDietBtn'), tabFeed = document.getElementById('tabFeedbackBtn');
+        const divDiet = document.getElementById('dietView'), divFeed = document.getElementById('feedbackView');
+        
+        function setTab(active, view) {
+            [tabDiet, tabFeed].forEach(t => { t.className = "text-slate-600 hover:text-blue-900 text-xs md:text-sm py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-all duration-300 cubic-pointer"; });
+            active.className = "active-tab text-xs md:text-sm py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-all duration-300 cursor-pointer";
+            divDiet.classList.add('hidden'); divFeed.classList.add('hidden');
+            view.classList.remove('hidden');
+        }
+        tabDiet.onclick = () => setTab(tabDiet, divDiet);
+        tabFeed.onclick = () => setTab(tabFeed, divFeed);
+
+        function saveLocal() { 
+            localStorage.setItem('ogrenci_sefi_state', JSON.stringify({ 
+                phase: programPhase, history: historyLog, plan: currentPlan, checks: checkedState, 
+                bio: { age:age.value, weight:weight.value, height:height.value, gender:gender.value, activity:activity.value, goal:goal.value, restrictions:restrictions.value } 
+            })); 
+        }
+        function loadLocal() {
+            let d = localStorage.getItem('ogrenci_sefi_state'); if(!d) return;
+            let s = JSON.parse(d); programPhase = s.phase || 1; historyLog = s.history || []; currentPlan = s.plan || ""; checkedState = s.checks || {};
+            if(s.bio) { age.value = s.bio.age; weight.value = s.bio.weight; height.value = s.bio.height; gender.value = s.bio.gender; activity.value = s.bio.activity; goal.value = s.bio.goal; restrictions.value = s.bio.restrictions || ""; }
+            updateUI(); updateHistoryTimeline(); 
+            if(currentPlan) { 
+                document.getElementById('initialState').classList.add('hidden'); 
+                document.getElementById('dietOutput').classList.remove('hidden'); 
+                renderStructuredDiet(currentPlan); 
+                document.getElementById('dietActionsPanel').classList.remove('hidden'); 
+                activateTabs(); 
+            }
+        }
+        function updateHistoryTimeline() { 
+            let tl = document.getElementById('historyTimeline'); 
+            if(historyLog.length === 0) tl.innerHTML = '<p class="text-slate-500 italic">Henüz geçmiş kayıt bulunmuyor.</p>'; 
+            else tl.innerHTML = historyLog.map(l=>`<div class="bg-white border border-slate-200 p-3 rounded-lg text-xs flex justify-between items-center"><span class="font-semibold text-blue-900">Aşama ${l.phase}</span><span class="text-slate-500">${l.date}</span><span class="text-slate-900 font-bold">${l.weight} kg</span><span class="bg-blue-50 text-blue-900 px-2 py-0.5 rounded">${l.energy}</span></div>`).join(''); 
+        }
+        
+        function activateTabs() { 
+            tabFeed.disabled = false;
+        }
+
+        function renderStructuredDiet(text) {
+            const out = document.getElementById('dietOutput');
+            const wrapper = document.getElementById('dietTabsWrapper');
+            out.innerHTML = ""; wrapper.innerHTML = "";
+            
+            const dayBlocks = text.split(/##\s*(?:[0-9]+\.\s*Gün|[Gg]ün\s*[0-9]+)/g);
+            const dayNames = text.match(/##\s*(?:[0-9]+\.\s*Gün|[Gg]ün\s*[0-9]+)/g) || ["## 1. Gün", "## 2. Gün", "## 3. Gün"];
+            
+            let structuredData = {};
+            let globalIndex = 0;
+
+            dayNames.forEach((name, idx) => {
+                let blockContent = dayBlocks[idx + 1] || "";
+                let dayId = idx + 1;
+                structuredData[dayId] = [];
+                
+                let tabBtn = document.createElement('button');
+                tabBtn.className = `px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold transition-all ${dayId === activeDayFilter ? 'day-tab-active' : 'text-slate-600 hover:text-blue-900 bg-white'}`;
+                tabBtn.innerText = name.replace('##', '').trim();
+                tabBtn.onclick = () => { activeDayFilter = dayId; renderStructuredDiet(currentPlan); };
+                wrapper.appendChild(tabBtn);
+
+                let meals = blockContent.split(/###\s*/g);
+                meals.forEach(mealStr => {
+                    if(!mealStr.trim()) return;
+                    let lines = mealStr.split('\n');
+                    let mealTitle = lines[0].trim();
+                    let items = [];
+                    
+                    mealStr.replace(/■\s*(.*)/g, (match, p1) => {
+                        globalIndex++;
+                        items.push({ id: globalIndex, text: p1 });
+                    });
+
+                    if(items.length > 0) {
+                        structuredData[dayId].push({ title: mealTitle, items: items });
+                    }
+                });
+            });
+
+            wrapper.classList.remove('hidden');
+            
+            let currentDayMeals = structuredData[activeDayFilter] || [];
+            if(currentDayMeals.length === 0) {
+                out.innerHTML = `<div class="text-xs text-slate-700 leading-relaxed p-4 bg-white border border-slate-200 rounded-xl">${text.replace(/\n/g, '<br>')}</div>`;
+                return;
+            }
+
+            currentDayMeals.forEach(meal => {
+                let mealPanel = document.createElement('div');
+                let isActionPlan = meal.title.toLowerCase().includes('aksiyon') || meal.title.toLowerCase().includes('mentor');
+                
+                mealPanel.className = isActionPlan 
+                    ? "bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 shadow-sm mb-4 border-l-4 border-l-blue-900" 
+                    : "bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-4";
+                
+                let icon = isActionPlan ? '<i class="fa-solid fa-brain text-blue-900"></i>' : '<i class="fa-regular fa-clock"></i>';
+                mealPanel.innerHTML = `<h4 class="text-xs font-black text-blue-900 uppercase tracking-widest border-b border-slate-100 pb-2 mb-3 flex items-center gap-2">${icon} ${meal.title}</h4>`;
+                
+                meal.items.forEach(item => {
+                    let checked = checkedState[item.id] ? 'checked' : '';
+                    let itemRow = document.createElement('div');
+                    itemRow.className = "flex items-start justify-between gap-3 p-3 rounded-xl glass-card my-1.5";
+                    
+                    let actionBtn = isActionPlan 
+                        ? `<span class="text-[9px] uppercase tracking-wider bg-blue-900 text-white px-2 py-1 rounded font-bold no-print">Görev</span>`
+                        : `<button onclick="swapMealElement(this, '${item.id}')" data-raw="${item.text.replace(/'/g, "\\'")}" class="no-print text-slate-700 hover:text-blue-900 border border-slate-200 rounded-lg px-2.5 py-1 text-[10px] font-semibold transition-all flex items-center gap-1 bg-slate-50"><i class="fa-solid fa-arrows-rotate text-[9px]"></i> Değiştir</button>`;
+
+                    itemRow.innerHTML = `
+                        <label class="flex-1 flex items-start gap-3.5 cursor-pointer">
+                            <input type="checkbox" data-id="${item.id}" ${checked} class="accent-blue-900 w-4 h-4 rounded border-slate-300 mt-0.5">
+                            <span class="text-xs text-slate-800 leading-relaxed font-medium">${item.text}</span>
+                        </label>
+                        ${actionBtn}
+                    `;
+                    mealPanel.appendChild(itemRow);
+                });
+                out.appendChild(mealPanel);
+            });
+            
+            listenComplianceEvents();
+        }
+
+        function listenComplianceEvents() {
+            let boxes = document.querySelectorAll('#dietOutput input[type="checkbox"]');
+            if(!boxes.length) return;
+            document.getElementById('complianceWrapper').classList.remove('hidden');
+            
+            boxes.forEach(b => {
+                let id = b.getAttribute('data-id');
+                b.onchange = () => {
+                    checkedState[id] = b.checked;
+                    calculateScore(boxes);
+                };
+            });
+            calculateScore(boxes);
+        }
+
+        function calculateScore(boxes) {
+            let chk = Object.values(checkedState).filter(Boolean).length;
+            let per = Math.round((chk / boxes.length) * 100) || 0;
+            document.getElementById('complianceBar').style.width = per + "%";
+            document.getElementById('complianceText').innerHTML = "%" + per;
+            saveLocal();
+        }
+
+        window.swapMealElement = async function(btn, id) {
+            let originalText = btn.getAttribute('data-raw');
+            let span = btn.parentElement.querySelector('span');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yenileniyor...';
+            
+            let prompt = `Şu öğünü muadil bir seçenekle değiştir: "${originalText}". Kriter: Aşağıdaki liste sınırlarına bağlı kalacaksın. Net gramaj/ölçü içermeli. Başına simge koyma. Sadece tek bir satır üret.
+            Kahvaltı ise: menemen, siyah/yeşil zeytin, omlet, beyaz peynir, kaşar, domates, salatalık, biber, ekmek çeşitleri (pide, somun), siyah/yeşil çay.
+            Ara öğün ise: ceviz, fındık, yer fıstığı, leblebi, elma, çilek, karpuz, kavun, üzüm, soda, limonata, yoğurt.
+            Öğle/Akşam ise: mercimek, kuru fasulye, nohut veya yeşil fasulye çorbası/yemeği, makarna, pirinç/bulgur pilavı, et/et ürünleri (tavuk, kıyma vb. BALIK KESİNLİKLE YOK), salata, ayran, şalgam. Bunlara ek benzer öğrenci dostu ekonomik ev yemekleri de seçebilirsin.`;
+            
+            try {
+                let res = await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":`Bearer ${API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"user",content:prompt}],temperature:0.4})});
+                let data = await res.json();
+                if(data.choices) {
+                    let newMeal = data.choices[0].message.content.trim();
+                    span.innerText = newMeal;
+                    currentPlan = currentPlan.replace(originalText, newMeal);
+                    btn.setAttribute('data-raw', newMeal);
+                    saveLocal();
+                }
+            } catch(e) { alert("Alternatif menü oluşturulamadı."); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-arrows-rotate text-[9px]"></i> Değiştir'; }
+        };
+
+        document.getElementById('startCoachingBtn').onclick = async () => {
+            let btn = document.getElementById('startCoachingBtn');
+            let engine = new DietEngine(age.value, weight.value, height.value, gender.value, activity.value, goal.value);
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Strateji Tasarlanıyor...';
+            
+            document.getElementById('initialState').classList.add('hidden');
+            document.getElementById('dietOutput').classList.remove('hidden');
+            document.getElementById('dietOutput').innerHTML = '<div class="py-24 text-center"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-900"></i><p class="text-xs text-slate-500 mt-3 font-medium">Biyolojik verileriniz, hedefleriniz ve psikolojik profiliniz analiz ediliyor. Nabza göre şerbet hazırlanıyor...</p></div>';
+            
+            let systemPrompt = `Sen seçkin bir spor diyetisyeni, öğrenci psikolojisi uzmanı ve dünya standartlarında bir beslenme mentörüsün. Kullanıcıya tam 3 günlük, hedef kalori ve makrolarına tam uyumlu, ultra-profesyonel bir program hazırla. 
+
+Yalnızca ve kesinlikle aşağıdaki öğün gruplarında izin verilen yiyecek çeşitlerini kullanarak bir kombinasyon yapacaksın.
+
+Her gün için tam olarak şu başlık formatını eksiksiz kullanmak zorundasın:
+## 1. Gün
+### Kahvaltı
+### Ara Öğün
+### Öğle Yemeği
+### Ara Öğün
+### Akşam Yemeği
+### 🎯 Günün Profesyonel Aksiyon ve Mentor Planı
+
+ÖĞÜN İÇERİK VE ULTRA-PROFESYONEL KOÇLUK KURALLARI:
+1) Her öğündeki maddelerin başına mutlaka "■ " koy.
+2) KAHVALTI ÖĞÜNÜ HAVUZU: Menemen, siyah zeytin, yeşil zeytin, omlet yumurta, beyaz peynir, kaşar peyniri, domates, salatalık, biber, ekmek çeşitleri (pide, somun ekmek vb.), siyah çay ve yeşil çay.
+3) ARA ÖĞÜN HAVUZU: Ceviz, fındık, yer fıstığı, leblebi, elma, çilek, karpuz, kavun, üzüm, soda (meyveli / sade isteğe göre), limonata, yoğurt.
+4) ÖĞLE ÖĞÜNÜ HAVUZU: Mercimek çorbası, kuru fasulye çorbası, nohut çorbası, yeşil fasulye çorbası/yemeği, makarna, pirinç pilavı, bulgur pilavı, et ve et ürünleri (tavuk, kıyma vb. BALIK KESİNLİKLE YOK). İçecek olarak ayran ve şalgam.
+5) AKŞAM ÖĞÜNÜ HAVUZU: Mercimek çorbası, kuru fasulye çorbası, nohut çorbası, yeşil fasulye çorbası/yemeği, salata, makarna, pirinç pilavı, bulgur pilavı, et ve et ürünleri (tavuk, kıyma vb. BALIK KESİNLİKLE YOK), salata. İçecek olarak ayran ve şalgam.
+6) SERBEST EKLEME: Listeye ek olarak bütçe dostu, benzer nitelikte ekonomik Türk ev yemekleri/çorbaları da ek porsiyon olarak yazılabilir.
+7) GRAMAJ KONTROLÜ: Her yiyeceğin yanına parantez içinde net gramaj, adet ve porsiyon ölçüsü ile 1 cümlelik pratik öğrenci usulü hazırlık/pişirme tüyosu ekle.
+8) 🎯 "NABZA GÖRE ŞERBET" AKSİYON PLANI KURALLARI: 
+- Her günün sonundaki '### 🎯 Günün Profesyonel Aksiyon ve Mentor Planı' başlığı altına "■ " simgesiyle başlayan 2 adet stratejik görev yaz.
+- Eğer hedef Kilo Vermek ise: Görevler stres yönetimi, kortizol düşürme, açlık krizlerini bastırma ve yürüyüş odaklı olsun.
+- Eğer hedef Kas Kazanmak ise: Görevler antrenman içi progressive overload (ağırlık artırma), protein sentezi zamanlaması ve yüksek enerji yönetimi odaklı olsun.
+- Üslubun tamamen bir elite antrenör ve üst düzey mentor gibi; sığ motivasyon cümlelerinden uzak, bilimsel, net ve öğrencinin moduna nokta atışı hitap eden yapıda olmalıdır.`;
+
+            let userPrompt = `Profil Bilgileri:
+- Yaş: ${engine.age} | Cinsiyet: ${gender.value}
+- Kilo: ${engine.weight} kg | Boy: ${engine.height} cm
+- Günlük Alınması Gereken Kalori: ${engine.getTarget()} kcal
+- Ana Hedef: ${goal.options[goal.selectedIndex].text}
+- Alerjen/Kısıtlar: ${restrictions.value || "Yok"}
+- Mevcut Durum: İlk döngü stratejisi kuruluyor.
+
+Bu verilere tam uyumlu 3 günlük programı ve dinamik koçluk hamlelerini oluştur.`;
+
+            try {
+                let res = await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":`Bearer ${API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"system",content:systemPrompt},{role:"user",content:userPrompt}],temperature:0.3,max_tokens:3500})});
+                let data = await res.json();
+                if(data.choices && data.choices[0]){
+                    currentPlan = data.choices[0].message.content;
+                    renderStructuredDiet(currentPlan);
+                    document.getElementById('dietActionsPanel').classList.remove('hidden');
+                    activateTabs();
+                }
+            } catch(e) {
+                document.getElementById('dietOutput').innerHTML = '<p class="text-rose-600 text-center py-10 font-medium">Bağlantı hatası oluştu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.</p>';
+            } finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calculator"></i> Profesyonel Programı Başlat'; }
+        };
+
+        document.getElementById('extendProgramBtn').onclick = async () => {
+            let nw = document.getElementById('feedbackWeight').value; if(!nw) { alert("Güncelleme için kilonuzu girmelisiniz."); return; }
+            let energy = document.getElementById('feedbackEnergy').value;
+            let notes = document.getElementById('feedbackNotes').value || "Yok";
+            let btn = document.getElementById('extendProgramBtn');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Strateji Değiştiriliyor...';
+            
+            let system = `Sen bir elite spor diyetisyeni ve zihinsel performans koçusun. Kullanıcının kilosu ${nw} kg olarak güncellendi. Güncel Enerji ve Psikoloji Durumu: ${energy}. Kullanıcının doğrudan sana notu: "${notes}". 
+            
+            Bu verilere göre tam anlamıyla NABZA GÖRE ŞERBET vereceksin:
+            - Eğer kullanıcı 'Halsiz / Yorgun / Stresli' seçeneğini işaretlediyse veya notunda sınav haftası baskısından bahsettiyse: Programı daha kolay hazırlanabilir, sindirimi rahat yemeklerden seç, aksiyon planındaki görevleri kortizol seviyesini ve zihinsel yorgunluğu düşürecek (örn: sınav öncesi limonatalı hidrasyon, odağı artıran yeşil çay protokolü, uyku kalitesi adımları) şekilde güncelle. Mentor tonun koruyucu, sakinleştirici ama son derece profesyonel olsun.
+            - Eğer kullanıcı 'Çok Enerjik' ise: Aksiyon görevlerini antrenman performansını patlatacak, kas içi glikojen depolarını tam dolduracak stratejik yönergelerle güncelle. Mentor tonun hırslı ve başarı odaklı olsun.
+            
+            Katı malzeme havuzumuza ve porsiyonlama kurallarımıza %100 bağlı kalarak, kullanıcının bu anlık durumuna göre revize edilmiş 3 günlük yeni bir program tasarla. Format başlıklarında mutlaka '### 🎯 Günün Profesyonel Aksiyon ve Mentor Planı' yer almalı ve maddeler '■ ' ile başlamalıdır.`;
+
+            try {
+                let res = await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":`Bearer ${API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"system",content:system},{role:"user",content:`Mevcut program: ${currentPlan}. Bu planı, girdiğim yeni anlık psikolojik ve fiziksel duruma göre baştan revize et ve tamamen nabza göre şerbet ver.`}],temperature:0.3,max_tokens:3500})});
+                let data = await res.json();
+                if(data.choices){
+                    programPhase++;
+                    historyLog.push({phase: programPhase-1, weight: nw, energy: energy, date: new Date().toLocaleDateString('tr-TR')});
+                    currentPlan = data.choices[0].message.content;
+                    weight.value = nw;
+                    updateUI();
+                    updateHistoryTimeline();
+                    renderStructuredDiet(currentPlan);
+                    document.getElementById('feedbackWeight').value = "";
+                    document.getElementById('feedbackNotes').value = "";
+                    setTab(tabDiet, divDiet);
+                    alert("Yapay zeka zihinsel ve fiziksel durumunuzu analiz etti; strateji nabza göre şerbet verilerek güncellendi!");
+                }
+            } catch(e){ alert("Güncelleme sırasında bir hata oluştu."); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Stratejiyi Yenile ve Nabza Göre Güncelle'; }
+        };
+
+        document.getElementById('printDietBtn').onclick = () => window.print();
+        
+        loadLocal();
+        window.addEventListener('beforeunload', saveLocal);
+    </script>
+</body>
+</html>
