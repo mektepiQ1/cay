@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="description" content="Akademik Asistan Pro - Yapay Zeka Destekli Akıllı Ders Programı ve Koçluk Sistemi">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Akademik Asistan Pro | AI Destekli Akıllı Analiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #4f46e5; --primary-dark: #3730a3; --primary-light: #818cf8;
+            --secondary: #06b6d4; --success: #10b981; --danger: #ef4444;
+            --warning: #f59e0b; --info: #3b82f6; --dark: #0f172a;
+            --light: #f8fafc; --gray-50: #f9fafb; --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0; --gray-300: #cbd5e1; --gray-400: #94a3b8;
+            --gray-500: #64748b; --gray-600: #475569; --gray-700: #334155;
+            --gray-800: #1e293b; --gray-900: #0f172a;
+            --border-radius-sm: 0.4rem; --border-radius: 0.6rem;
+            --border-radius-lg: 0.8rem; --border-radius-xl: 1.1rem;
+            --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); font-family: 'Inter', sans-serif; font-weight: 500; min-height: 100vh; padding: 0.5rem; }
+        .app-wrapper { max-width: 1500px; margin: 0 auto; }
+        .app-container { background: white; border-radius: var(--border-radius-xl); box-shadow: var(--shadow-xl); overflow: hidden; transition: var(--transition); }
+        
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--gray-200); background: white; flex-wrap: wrap; gap: 0.5rem; }
+        .app-logo { display: flex; align-items: center; gap: 0.5rem; }
+        .app-logo i { font-size: 1.35rem; color: var(--primary); }
+        .app-logo h1 { font-size: 1.15rem; font-weight: 800; color: var(--gray-900); letter-spacing: -0.3px; }
+
+        .main-navbar { display: flex; background: var(--gray-50); padding: 0 1.25rem; border-bottom: 1px solid var(--gray-200); gap: 0.25rem; overflow-x: auto; }
+        .nav-tab { padding: 0.75rem 1.1rem; cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--gray-600); border-bottom: 3px solid transparent; transition: var(--transition); white-space: nowrap; display: flex; align-items: center; gap: 0.4rem; }
+        .nav-tab:hover { color: var(--primary); border-bottom-color: var(--gray-300); }
+        .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 800; background: white; }
+
+        .content-panel { display: none; animation: fadeInUp 0.2s ease; }
+        .content-panel.active-panel { display: block; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 1rem 1.25rem; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+        .stat-card { background: white; border-radius: var(--border-radius-lg); padding: 0.85rem 1rem; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); transition: var(--transition); }
+        .stat-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-500); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.3rem; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+
+        .time-settings-panel { background: white; padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--gray-200); display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 600; }
+        
+        .timetable-wrapper { overflow-x: auto; overflow-y: auto; max-height: 65vh; padding: 0.75rem; background: #fafafa; }
+        .timetable-grid { display: grid; grid-template-columns: 65px repeat(7, minmax(115px, 1fr)); gap: 2px; background: var(--gray-200); border-radius: var(--border-radius); overflow: hidden; min-width: 850px; box-shadow: var(--shadow-xs); }
+        .timetable-grid > div { background: white; padding: 0.4rem 0.25rem; font-size: 0.75rem; min-height: 70px; display: flex; align-items: center; justify-content: center; font-weight: 600; text-align: center; }
+        .grid-header-corner, .grid-day-header, .grid-time-cell { font-weight: 700; background: var(--gray-100); color: var(--gray-800); }
+        .grid-day-header { flex-direction: column; gap: 0.15rem; font-weight: 800; background: linear-gradient(to bottom, var(--gray-50), var(--gray-100)); }
+        .grid-lesson-slot { cursor: pointer; transition: var(--transition); }
+        .grid-lesson-slot:hover { background: var(--gray-50); box-shadow: inset 0 0 0 2px var(--primary-light); }
+        
+        .lesson-item { border-left: 3px solid; border-radius: var(--border-radius-sm); padding: 0.4rem; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; background: white; box-shadow: var(--shadow-xs); gap: 0.25rem; text-align: left; }
+        .lesson-item strong { font-weight: 800; color: var(--gray-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; }
+        .lesson-topic-text { color: var(--gray-500); font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.2rem; }
+        .lesson-stats-badge { font-size: 0.65rem; font-weight: 700; display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: auto; }
+        
+        .btn-primary, .btn-secondary, .btn-danger, .btn-outline { padding: 0.45rem 0.9rem; border-radius: 1.5rem; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 0.4rem; border: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-secondary { background: white; color: var(--gray-800); border: 1px solid var(--gray-300); }
+        .btn-secondary:hover { background: var(--gray-100); }
+        .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--gray-300); color: var(--gray-700); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+        .modal-card { background: white; border-radius: var(--border-radius-lg); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; padding: 1.25rem; box-shadow: var(--shadow-xl); }
+        .modal-large { max-width: 96vw; width: 96vw; height: 90vh; display: flex; flex-direction: column; }
+        .modal-card h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.4rem; border-left: 4px solid var(--primary); padding-left: 0.5rem; }
+        
+        #lessonModal { z-index: 2100; }
+
+        .form-group { margin-bottom: 0.85rem; }
+        .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--gray-800); display: block; margin-bottom: 0.25rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.55rem; border-radius: var(--border-radius); border: 1px solid var(--gray-300); font-family: inherit; font-size: 0.82rem; font-weight: 500; }
+        
+        .toast-msg { position: fixed; bottom: 1rem; right: 1rem; background: var(--gray-800); color: white; padding: 0.6rem 1rem; border-radius: 1.5rem; font-size: 0.8rem; font-weight: 600; z-index: 3000; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.4rem; animation: slideIn 0.2s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+        .history-container { padding: 1rem; }
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .history-card { background: white; border-radius: var(--border-radius-lg); padding: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-xs); transition: var(--transition); display: flex; flex-direction: column; gap: 0.5rem; }
+        .history-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; padding: 1rem; }
+        .analytics-card { background: white; border-radius: var(--border-radius-lg); padding: 1.25rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); }
+        .analytics-card h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; color: var(--primary); }
+        
+        .ai-insights-box { background: linear-gradient(145deg, #f0fdf4, #ecfdf5); border: 1px solid #a7f3d0; border-radius: var(--border-radius-lg); padding: 1.25rem; margin: 1rem; box-shadow: var(--shadow-sm); }
+        .ai-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; color: #065f46; border-bottom: 2px solid #a7f3d0; padding-bottom: 0.5rem; }
+        .ai-header i { font-size: 1.4rem; }
+        .ai-header h2 { font-size: 1.1rem; font-weight: 800; }
+        
+        /* Görsel Zaman Çizelgesi (Timeline) CSS */
+        .timeline-container { display: flex; align-items: center; justify-content: center; gap: 0.75rem; overflow-x: auto; padding: 0.5rem; margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.6); border-radius: var(--border-radius-lg); }
+        .timeline-node { background: white; border: 2px solid var(--primary-light); padding: 0.6rem 1rem; border-radius: var(--border-radius); text-align: center; box-shadow: var(--shadow-sm); flex-shrink: 0; min-width: 130px; }
+        .timeline-node.first { border-color: var(--gray-400); }
+        .timeline-node.last { border-color: var(--success); background: #f0fdf4; }
+        .timeline-node-title { font-weight: 800; color: var(--primary); font-size: 0.8rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; margin-inline: auto;}
+        .timeline-node-date { font-size: 0.65rem; color: var(--gray-500); font-weight: 600; }
+        .timeline-arrow { color: var(--gray-400); font-size: 1rem; flex-shrink: 0; }
+
+        /* Başarı Kronolojisi Çipleri CSS */
+        .chronology-step { display: inline-block; background: var(--gray-100); border: 1px solid var(--gray-300); padding: 0.15rem 0.4rem; border-radius: 0.3rem; font-size: 0.7rem; font-weight: 700; color: var(--gray-700); cursor: help; transition: var(--transition); }
+        .chronology-step:hover { background: var(--primary-light); color: white; border-color: var(--primary); }
+        .chronology-wrapper { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+
+        .insight-card { background: white; border-radius: var(--border-radius); padding: 0.85rem 1rem; margin-bottom: 0.6rem; border-left: 4px solid; box-shadow: var(--shadow-xs); display: flex; flex-direction: column; gap: 0.25rem; }
+        .insight-card.success { border-left-color: var(--success); }
+        .insight-card.warning { border-left-color: var(--warning); }
+        .insight-card.danger { border-left-color: var(--danger); }
+        .insight-card.info { border-left-color: var(--info); }
+        .insight-card.stable { border-left-color: #8b5cf6; } /* İstikrarlı kartlar için mor renk */
+        
+        .insight-title { font-size: 0.85rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem; }
+        .insight-desc { font-size: 0.8rem; font-weight: 500; color: var(--gray-700); line-height: 1.5; }
+        
+        .metric-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.5rem; border-radius: 0.3rem; font-size: 0.75rem; font-weight: 800; gap: 0.2rem; margin-top: 0.4rem; width: fit-content; }
+        .metric-up { background: #dcfce7; color: #166534; }
+        .metric-down { background: #fee2e2; color: #991b1b; }
+        .metric-neutral { background: #f1f5f9; color: #475569; }
+        
+        .ai-ranked-list { list-style: none; margin-top: 0.5rem; }
+        .ai-ranked-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: var(--gray-50); border-radius: var(--border-radius-sm); margin-bottom: 0.3rem; font-size: 0.8rem; border: 1px solid var(--gray-200); }
+        
+        .analysis-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+        .analysis-table th { background: var(--gray-100); color: var(--gray-800); font-weight: 700; padding: 0.6rem; }
+        .analysis-table td { padding: 0.6rem; border-bottom: 1px solid var(--gray-200); }
+
+        footer { text-align: center; padding: 0.85rem; border-top: 1px solid var(--gray-200); font-size: 0.7rem; font-weight: 600; color: var(--gray-500); background: white; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--gray-100); }
+        ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <div class="app-container">
+        
+        <div class="app-header">
+            <div class="app-logo">
+                <i class="fas fa-brain"></i>
+                <h1>Akademik Asistan <span style="color:var(--primary)">Pro</span></h1>
+            </div>
+        </div>
+
+        <div class="main-navbar">
+            <div class="nav-tab active" data-tab="create"><i class="fas fa-calendar-check"></i> Çalışma Alanı</div>
+            <div class="nav-tab" data-tab="history"><i class="fas fa-archive"></i> Program Arşivi</div>
+            <div class="nav-tab" data-tab="compare"><i class="fas fa-tasks"></i> Gelişim Seçimi</div>
+            <div class="nav-tab" data-tab="analytics" id="analyticsTabBtn"><i class="fas fa-chart-line"></i> Yapay Zeka Analizi</div>
+        </div>
+        
+        <div class="content-panel active-panel" id="createPanel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title"><i class="fas fa-bullseye"></i> Hedeflenen Toplam Soru</div>
+                    <div class="stat-value" id="totalTargetStat">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title"><i class="fas fa-check-double"></i> Çözülen Toplam Soru</div>
+                    <div class="stat-value" id="totalSolvedStat">0</div>
+                </div>
+            </div>
+            <div class="time-settings-panel">
+                <div><i class="far fa-clock"></i> <strong>Zaman Yönetimi</strong></div>
+                <div id="timeSlotsContainer" style="display: flex; flex-wrap: wrap; gap: 0.4rem;"></div>
+                <div style="display: flex; gap: 0.4rem;">
+                    <button class="btn-secondary" id="addTimeSlotBtn" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;"><i class="fas fa-plus"></i> Ekle</button>
+                    <button class="btn-secondary" id="resetTimeSlotsBtn" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;"><i class="fas fa-undo"></i> Sıfırla</button>
+                </div>
+            </div>
+            
+            <div class="timetable-wrapper" id="pdfExportTarget">
+                <div class="timetable-grid" id="timetableGrid"></div>
+            </div>
+            
+            <div style="padding: 0.75rem 1rem; display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; border-top: 1px solid var(--gray-200); background: var(--gray-50);">
+                <div style="display: flex; gap: 0.4rem;">
+                    <button class="btn-secondary" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Temizle</button>
+                    <button class="btn-secondary" id="quickTemplateBtn"><i class="fas fa-magic"></i> Hızlı Şablon Yükle</button>
+                    <button class="btn-secondary" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> PDF Çıktısı</button>
+                </div>
+                <button class="btn-primary" id="saveProgramBtn"><i class="fas fa-save"></i> Arşive Kaydet</button>
+            </div>
+        </div>
+
+        <div class="content-panel" id="historyPanel">
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-title"><i class="fas fa-archive"></i> Arşivlenen Program</div><div class="stat-value" id="archivedCount">0</div></div>
+                <div class="stat-card"><div class="stat-title"><i class="fas fa-trophy"></i> Genel Doğru Oranı</div><div class="stat-value" id="globalAccuracyStat">%0</div></div>
+            </div>
+            <div class="history-container" id="historyContainer"></div>
+        </div>
+
+        <div class="content-panel" id="comparePanel">
+            <div style="padding: 1.5rem;">
+                <div style="background: white; border-radius: var(--border-radius-lg); padding: 1.5rem; border: 1px solid var(--gray-200); text-align: center;">
+                    <i class="fas fa-robot" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 800; color: var(--gray-900);">Yapay Zeka Destekli Gelişim Analizi</h3>
+                    <p style="margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 500; color: var(--gray-500); max-width: 600px; margin-inline: auto;">Hangi programları karşılaştırmak istiyorsanız işaretleyin. Seçtiğiniz programlar otomatik olarak en eskiden en yeniye doğru sıralanarak zaman içindeki gerçek ivmeniz analiz edilecektir.</p>
+                    
+                    <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+                        <button class="btn-secondary" id="selectAllCompareBtn"><i class="fas fa-check-double"></i> Tüm Arşivi Seç</button>
+                        <button class="btn-secondary" id="clearAllCompareBtn"><i class="fas fa-times"></i> Seçimi Temizle</button>
+                    </div>
+                    
+                    <div id="compareProgramsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.5rem; margin-bottom: 1.5rem; max-height: 250px; overflow-y: auto; text-align: left; padding: 0.5rem; background: var(--gray-50); border-radius: var(--border-radius); border: 1px solid var(--gray-200);"></div>
+                    
+                    <button class="btn-primary" id="analyzeCombinedBtn" style="background: var(--success); font-size: 1rem; padding: 0.75rem 2rem; box-shadow: var(--shadow-md);"><i class="fas fa-bolt"></i> Analizi Başlat & Koçluk Raporunu Gör</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-panel" id="analyticsPanel">
+            <div id="aiFeedbackArea">
+                <div style="padding: 3rem 1rem; text-align: center; color: var(--gray-400);">
+                    <i class="fas fa-chart-pie" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>Yapay Zeka Analizini görmek için "Gelişim Seçimi" sekmesinden program seçip motoru çalıştırın.</p>
+                </div>
+            </div>
+
+            <div class="analytics-grid" id="chartsArea" style="display: none;">
+                <div class="analytics-card" style="grid-column: span 2;">
+                    <h3><i class="fas fa-book-open"></i> Konulara Göre Gelişim Kronolojisi ve Detaylı Yanıt Dağılımı</h3>
+                    <div id="topicAnalysisContainer" style="overflow-x: auto; margin-top: 1rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer><i class="fas fa-brain"></i> Akademik Asistan Pro — AI Destekli Koçluk Sistemi</footer>
+    </div>
+</div>
+
+<div id="lessonModal" class="modal">
+    <div class="modal-card">
+        <h3 id="modalTitle">Ders Bilgilerini İşle</h3>
+        <input type="hidden" id="modalDay">
+        <input type="hidden" id="modalHour">
+        <div class="form-group"><label>Ders Adı</label><input type="text" id="lessonName" placeholder="Örn: Matematik"></div>
+        <div class="form-group"><label>Konu</label><input type="text" id="lessonTopic" placeholder="Örn: Türev ve Uygulamaları"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group"><label>Hedeflenen Soru</label><input type="number" id="targetQuestion" value="40" min="0"></div>
+            <div class="form-group"><label>Toplam Çözülen</label><input type="number" id="questionCount" value="0" min="0"></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; background: var(--gray-50); padding: 0.6rem; border-radius: var(--border-radius); border: 1px solid var(--gray-200); margin-bottom: 0.85rem;">
+            <div class="form-group" style="margin:0;"><label style="color:var(--success)"><i class="fas fa-check"></i> Doğru</label><input type="number" id="correctCount" value="0" min="0"></div>
+            <div class="form-group" style="margin:0;"><label style="color:var(--danger)"><i class="fas fa-times"></i> Yanlış</label><input type="number" id="wrongCount" value="0" min="0"></div>
+            <div class="form-group" style="margin:0;"><label style="color:var(--warning)"><i class="far fa-circle"></i> Boş</label><input type="number" id="blankCount" value="0" min="0"></div>
+        </div>
+        <div class="form-group"><label>Özel Not</label><textarea id="lessonNote" rows="2" placeholder="Dikkat edilmesi gerekenler..."></textarea></div>
+        <div class="form-group"><label>Renk Göstergesi</label><input type="color" id="lessonColor" value="#4f46e5"></div>
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+            <button class="btn-secondary" id="closeModalBtn">Vazgeç</button>
+            <button class="btn-primary" id="saveLessonBtn">Kaydet</button>
+            <button class="btn-danger" id="deleteLessonBtn" style="display:none;">Sil</button>
+        </div>
+    </div>
+</div>
+
+<div id="programDetailModal" class="modal">
+    <div class="modal-card modal-large">
+        <h3 style="justify-content: space-between;">
+            <span><i class="fas fa-eye"></i> Arşiv İnceleme ve Düzenleme Ekranı</span> 
+            <button class="btn-secondary" onclick="document.getElementById('programDetailModal').style.display='none'" style="padding:0.35rem 0.8rem; font-size:0.8rem;">Kapat</button>
+        </h3>
+        <div id="programDetailContent" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:1rem;"></div>
+    </div>
+</div>
+
+<div id="saveProgramNameModal" class="modal">
+    <div class="modal-card">
+        <h3><i class="fas fa-bookmark"></i> Arşive Kaldır</h3>
+        <div class="form-group"><label>Program Adı</label><input type="text" id="programNameInput" placeholder="Örn: 1. Dönem Final Haftası"></div>
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn-secondary" onclick="document.getElementById('saveProgramNameModal').style.display='none'">İptal</button>
+            <button class="btn-primary" onclick="performSaveWithName()">Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<div id="customConfirmModal" class="modal">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <i id="confirmIcon" class="fas fa-exclamation-triangle" style="font-size: 2.5rem; color: var(--warning); margin-bottom: 1rem;"></i>
+        <h3 id="confirmTitle" style="border: none; padding: 0; justify-content: center; margin-bottom: 0.5rem;">Onay Gerekli</h3>
+        <p id="confirmMessage" style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 1.5rem; font-weight: 500;"></p>
+        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+            <button class="btn-secondary" id="confirmCancelBtn">Vazgeç</button>
+            <button class="btn-primary" id="confirmActionBtn">Onayla</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+    let TIME_SLOTS = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+    let timetable = [];
+    let programHistory = [];
+    let currentEditDay = -1;
+    let currentEditHour = -1;
+    let currentArchiveEditId = -1; 
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initData();
+        setupTabs();
+        setupButtons();
+        renderTimeControls();
+        renderTimetable();
+        updateStats();
+    });
+
+    function initData() {
+        const h = localStorage.getItem("akademik_history");
+        if (h) { try { programHistory = JSON.parse(h); } catch(e) { programHistory = []; } }
+        const c = localStorage.getItem("akademik_current");
+        if (c) { try { timetable = JSON.parse(c); } catch(e) { initTimetable(); } } else initTimetable();
+        const s = localStorage.getItem("akademik_slots");
+        if (s) { try { TIME_SLOTS = JSON.parse(s); } catch(e) {} }
+    }
+
+    function initTimetable() { timetable = DAYS.map(() => Array(TIME_SLOTS.length).fill(null)); }
+    
+    function saveData() {
+        localStorage.setItem("akademik_history", JSON.stringify(programHistory));
+        localStorage.setItem("akademik_current", JSON.stringify(timetable));
+        localStorage.setItem("akademik_slots", JSON.stringify(TIME_SLOTS));
+    }
+
+    function customConfirm(title, message, callback, type = "warning") {
+        const modal = document.getElementById("customConfirmModal");
+        document.getElementById("confirmTitle").innerText = title;
+        document.getElementById("confirmMessage").innerText = message;
+        
+        const icon = document.getElementById("confirmIcon");
+        const actionBtn = document.getElementById("confirmActionBtn");
+        
+        if(type === "danger") {
+            icon.className = "fas fa-trash-alt";
+            icon.style.color = "var(--danger)";
+            actionBtn.style.background = "var(--danger)";
+        } else {
+            icon.className = "fas fa-exclamation-triangle";
+            icon.style.color = "var(--warning)";
+            actionBtn.style.background = "var(--primary)";
+        }
+        
+        modal.style.display = "flex";
+        
+        const newActionBtn = actionBtn.cloneNode(true);
+        actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
+        
+        const cancelBtn = document.getElementById("confirmCancelBtn");
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        
+        newActionBtn.addEventListener("click", () => {
+            modal.style.display = "none";
+            if(callback) callback();
+        });
+        
+        newCancelBtn.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
+
+    function setupTabs() {
+        document.querySelectorAll(".nav-tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+                document.querySelectorAll(".content-panel").forEach(p => p.classList.remove("active-panel"));
+                tab.classList.add("active");
+                document.getElementById(tab.dataset.tab + "Panel").classList.add("active-panel");
+                if (tab.dataset.tab === "history") renderHistory();
+                if (tab.dataset.tab === "compare") renderCompareList();
+            });
+        });
+    }
+
+    function setupButtons() {
+        document.getElementById("addTimeSlotBtn").addEventListener("click", () => {
+            let next = "17:00";
+            if(TIME_SLOTS.length > 0) { let parts = TIME_SLOTS[TIME_SLOTS.length - 1].split(":"); let h = parseInt(parts[0]) + 1; next = (h < 10 ? "0" + h : h) + ":" + (parts[1] || "00"); }
+            TIME_SLOTS.push(next); DAYS.forEach((_, d) => { if(timetable[d]) timetable[d].push(null); });
+            saveData(); renderTimeControls(); renderTimetable(); updateStats();
+        });
+        
+        document.getElementById("resetTimeSlotsBtn").addEventListener("click", () => {
+            customConfirm("Sıfırla", "Zaman dilimleri varsayılana döndürülecektir. Emin misiniz?", () => {
+                TIME_SLOTS = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]; initTimetable(); saveData(); renderTimeControls(); renderTimetable(); updateStats(); showToast("Zaman dilimleri sıfırlandı.");
+            });
+        });
+        
+        document.getElementById("clearAllBtn").addEventListener("click", () => {
+            customConfirm("Temizle", "Çalışma alanındaki tüm dersler silinecektir. Emin misiniz?", () => {
+                initTimetable(); saveData(); renderTimetable(); updateStats(); showToast("Çalışma alanı temizlendi.");
+            }, "danger");
+        });
+        
+        document.getElementById("quickTemplateBtn").addEventListener("click", () => {
+            customConfirm("Şablon Yükle", "Mevcut programınızın üzerine örnek şablon verileri yazılacaktır. Onaylıyor musunuz?", () => {
+                initTimetable();
+                const samples = ["Matematik", "Türkçe", "Fizik", "Kimya", "Biyoloji", "Tarih", "Coğrafya"];
+                const topics = ["Temel Kavramlar", "Paragraf", "Kuvvet ve Hareket", "Madde", "Hücre", "İnkılap Tarihi", "Harita"];
+                const colors = ["#4f46e5", "#06b6d4", "#10b981", "#ef4444", "#f59e0b", "#3b82f6", "#818cf8"];
+
+                for(let d=0; d<DAYS.length; d++) {
+                    for(let h=0; h<Math.min(TIME_SLOTS.length, 4); h++) {
+                        let r = Math.floor(Math.random() * samples.length);
+                        let target = 50;
+                        let solved = Math.floor(Math.random() * 20) + 30; 
+                        let wrong = Math.floor(Math.random() * 6); 
+                        let blank = Math.floor(Math.random() * 4); 
+                        let correct = solved - wrong - blank;
+                        if(correct < 0) correct = 0;
+
+                        timetable[d][h] = {
+                            name: samples[r], topic: topics[r], note: "Şablon verisi", color: colors[r],
+                            targetQuestion: target, questionCount: solved, correctCount: correct, wrongCount: wrong, blankCount: blank,
+                            date: new Date().toISOString()
+                        };
+                    }
+                }
+                saveData(); renderTimetable(); updateStats(); showToast("Hızlı şablon yüklendi!");
+            });
+        });
+        
+        document.getElementById("exportPdfBtn").addEventListener("click", () => {
+            const element = document.getElementById("pdfExportTarget");
+            const opt = {
+                margin:       0.5,
+                filename:     'Akademik_Asistan_Program.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            showToast("PDF hazırlanıyor, lütfen bekleyin...", "info");
+            html2pdf().set(opt).from(element).save().then(() => {
+                showToast("PDF başarıyla indirildi!", "success");
+            });
+        });
+
+        document.getElementById("saveProgramBtn").addEventListener("click", () => {
+            document.getElementById("programNameInput").value = ""; 
+            document.getElementById("saveProgramNameModal").style.display = "flex";
+        });
+        
+        document.getElementById("closeModalBtn").addEventListener("click", () => document.getElementById("lessonModal").style.display = "none");
+        document.getElementById("saveLessonBtn").addEventListener("click", saveLessonData);
+        document.getElementById("deleteLessonBtn").addEventListener("click", deleteLessonData);
+        document.getElementById("selectAllCompareBtn").addEventListener("click", () => { document.querySelectorAll(".compare-checkbox").forEach(cb => cb.checked = true); });
+        document.getElementById("clearAllCompareBtn").addEventListener("click", () => { document.querySelectorAll(".compare-checkbox").forEach(cb => cb.checked = false); });
+        document.getElementById("analyzeCombinedBtn").addEventListener("click", runAIAnalysis);
+    }
+
+    function showToast(msg, type = "success") {
+        const div = document.createElement("div"); div.className = "toast-msg";
+        let icon = 'fa-check-circle';
+        let bg = '#10b981';
+        
+        if(type === 'error') { icon = 'fa-exclamation-circle'; bg = '#ef4444'; }
+        else if(type === 'info') { icon = 'fa-info-circle'; bg = '#3b82f6'; }
+        
+        div.innerHTML = `<i class="fas ${icon}"></i> ${msg}`;
+        div.style.background = bg;
+        document.body.appendChild(div); setTimeout(() => div.remove(), 2500);
+    }
+    
+    function escapeHtml(str) { return str ? String(str).replace(/[&<>]/g, m => m === "&" ? "&amp;" : m === "<" ? "&lt;" : "&gt;") : ""; }
+
+    function updateStats() {
+        let tTarget = 0, tSolved = 0;
+        for(let d=0; d<DAYS.length; d++) {
+            if(timetable[d]) {
+                for(let h=0; h<TIME_SLOTS.length; h++) {
+                    let l = timetable[d][h];
+                    if(l && l.name) { tTarget += parseInt(l.targetQuestion)||0; tSolved += parseInt(l.questionCount)||0; }
+                }
+            }
+        }
+        document.getElementById("totalTargetStat").innerHTML = tTarget;
+        document.getElementById("totalSolvedStat").innerHTML = tSolved;
+    }
+
+    function renderTimeControls() {
+        const container = document.getElementById("timeSlotsContainer"); container.innerHTML = "";
+        TIME_SLOTS.forEach((slot, idx) => {
+            const wrap = document.createElement("div"); wrap.style.cssText = "display:inline-flex; align-items:center; background:var(--gray-100); padding:0.2rem 0.5rem; border-radius:0.4rem; gap:0.25rem;";
+            wrap.innerHTML = `<input type="text" value="${slot}" data-index="${idx}" class="time-slot-input" style="width:45px; border:none; background:transparent; font-size:0.75rem; font-weight:700; text-align:center;"><i class="fas fa-times remove-slot-btn" data-index="${idx}" style="cursor:pointer; color:var(--danger); font-size:0.7rem;"></i>`;
+            container.appendChild(wrap);
+        });
+        
+        document.querySelectorAll(".time-slot-input").forEach(inp => inp.addEventListener("change", (e) => { let idx = parseInt(e.target.dataset.index); let val = e.target.value.trim(); if(val) { TIME_SLOTS[idx] = val; saveData(); renderTimetable(); } }));
+        document.querySelectorAll(".remove-slot-btn").forEach(btn => btn.addEventListener("click", (e) => { let idx = parseInt(btn.dataset.index); if (TIME_SLOTS.length <= 1) return showToast("En az 1 saat kalmalıdır.", "error"); TIME_SLOTS = TIME_SLOTS.filter((_, i) => i !== idx); DAYS.forEach((_, d) => { if(timetable[d]) timetable[d] = timetable[d].filter((_, i) => i !== idx); }); saveData(); renderTimeControls(); renderTimetable(); updateStats(); }));
+    }
+
+    function renderTimetable() {
+        const grid = document.getElementById("timetableGrid"); grid.innerHTML = "";
+        grid.appendChild(Object.assign(document.createElement("div"), {className: "grid-header-corner", innerHTML: `<i class="fas fa-clock"></i>`}));
+        DAYS.forEach(d => grid.appendChild(Object.assign(document.createElement("div"), {className: "grid-day-header", innerHTML: `<span>${d}</span>`})));
+        
+        for (let h = 0; h < TIME_SLOTS.length; h++) {
+            grid.appendChild(Object.assign(document.createElement("div"), {className: "grid-time-cell", innerHTML: TIME_SLOTS[h]}));
+            for (let d = 0; d < DAYS.length; d++) {
+                const slot = document.createElement("div"); slot.className = "grid-lesson-slot";
+                let lesson = timetable[d] ? timetable[d][h] : null;
+                if (lesson && lesson.name) {
+                    slot.innerHTML = `
+                        <div class="lesson-item" style="border-left-color: ${lesson.color || '#4f46e5'}">
+                            <strong>${escapeHtml(lesson.name)}</strong>
+                            <span class="lesson-topic-text">${escapeHtml(lesson.topic)}</span>
+                            <div class="lesson-stats-badge">
+                                <span title="Hedef">🎯 ${lesson.targetQuestion||0}</span>
+                                <span style="color:var(--success)" title="Doğru">✔️ ${lesson.correctCount||0}</span>
+                                <span style="color:var(--danger)" title="Yanlış">❌ ${lesson.wrongCount||0}</span>
+                                <span style="color:var(--warning)" title="Boş">⭕ ${lesson.blankCount||0}</span>
+                            </div>
+                        </div>`;
+                } else slot.innerHTML = `<span style="color:var(--gray-300); font-size:0.65rem;">+ Ekle</span>`;
+                
+                slot.addEventListener("click", () => {
+                    currentArchiveEditId = -1; 
+                    openModal(d, h, lesson);
+                });
+                grid.appendChild(slot);
+            }
+        }
+    }
+
+    function openModal(d, h, l) {
+        currentEditDay = d; currentEditHour = h;
+        document.getElementById("modalTitle").innerText = `${DAYS[d]} - ${TIME_SLOTS[h]}`;
+        ["lessonName", "lessonTopic", "lessonNote", "lessonColor", "targetQuestion", "questionCount", "correctCount", "wrongCount", "blankCount"].forEach(id => {
+            document.getElementById(id).value = l ? (l[id] !== undefined ? l[id] : document.getElementById(id).defaultValue) : document.getElementById(id).defaultValue;
+            if(!l && id==="lessonColor") document.getElementById(id).value = "#4f46e5";
+        });
+        document.getElementById("deleteLessonBtn").style.display = l ? "inline-flex" : "none";
+        document.getElementById("lessonModal").style.display = "flex";
+    }
+
+    function saveLessonData() {
+        let n = document.getElementById("lessonName").value.trim(); if(!n) return showToast("Ders adı girin", "error");
+        
+        let qC = parseInt(document.getElementById("questionCount").value)||0;
+        let cC = parseInt(document.getElementById("correctCount").value)||0;
+        let wC = parseInt(document.getElementById("wrongCount").value)||0;
+        let bC = parseInt(document.getElementById("blankCount").value)||0;
+
+        if (cC + wC + bC > qC && qC > 0) {
+             return showToast("Doğru, yanlış ve boş toplamı çözülen soruyu geçemez!", "error");
+        }
+
+        let lessonObj = {
+            name: n, topic: document.getElementById("lessonTopic").value.trim(), note: document.getElementById("lessonNote").value.trim(), color: document.getElementById("lessonColor").value,
+            targetQuestion: parseInt(document.getElementById("targetQuestion").value)||0, 
+            questionCount: qC, correctCount: cC, wrongCount: wC, blankCount: bC,
+            date: new Date().toISOString()
+        };
+
+        if(currentArchiveEditId === -1) {
+            timetable[currentEditDay][currentEditHour] = lessonObj;
+            saveData(); renderTimetable(); updateStats();
+        } else {
+            let prog = programHistory.find(p => p.id === currentArchiveEditId);
+            if(prog) {
+                prog.timetable[currentEditDay][currentEditHour] = lessonObj;
+                let counts = 0; prog.timetable.forEach(day => day && day.forEach(l => { if(l?.name) counts++; }));
+                prog.lessonCount = counts;
+                saveData(); viewArchivedDetail(currentArchiveEditId); renderHistory();
+            }
+        }
+        document.getElementById("lessonModal").style.display="none"; showToast("Ders kaydedildi");
+    }
+
+    function deleteLessonData() {
+        if(currentArchiveEditId === -1) {
+            timetable[currentEditDay][currentEditHour] = null;
+            saveData(); renderTimetable(); updateStats();
+        } else {
+            let prog = programHistory.find(p => p.id === currentArchiveEditId);
+            if(prog) {
+                prog.timetable[currentEditDay][currentEditHour] = null;
+                let counts = 0; prog.timetable.forEach(day => day && day.forEach(l => { if(l?.name) counts++; }));
+                prog.lessonCount = counts;
+                saveData(); viewArchivedDetail(currentArchiveEditId); renderHistory();
+            }
+        }
+        document.getElementById("lessonModal").style.display="none"; showToast("Ders silindi");
+    }
+
+    function performSaveWithName() {
+        let n = document.getElementById("programNameInput").value.trim(); if(!n) return showToast("İsim girin", "error");
+        let counts = 0; timetable.forEach(d => d && d.forEach(l => { if(l?.name) counts++; }));
+        programHistory.unshift({ id: Date.now(), name: n, date: new Date().toISOString(), timetable: JSON.parse(JSON.stringify(timetable)), timeSlots: [...TIME_SLOTS], lessonCount: counts });
+        saveData(); document.getElementById("saveProgramNameModal").style.display="none"; showToast(`Arşive Eklendi`);
+        renderHistory(); renderCompareList();
+    }
+
+    function renderHistory() {
+        document.getElementById("archivedCount").innerHTML = programHistory.length;
+        let tC=0, tS=0;
+        programHistory.forEach(p => p.timetable.forEach(d => d && d.forEach(l => { 
+            if(l && l.name) { tC += parseInt(l.correctCount)||0; tS += parseInt(l.questionCount)||0; } 
+        })));
+        document.getElementById("globalAccuracyStat").innerHTML = tS > 0 ? `%${Math.round((tC/tS) * 100)}` : "%0";
+        
+        let html = `<div class="history-grid">`;
+        programHistory.forEach(p => { 
+            html += `<div class="history-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong style="font-size:0.95rem;color:var(--gray-900);">${escapeHtml(p.name)}</strong>
+                            <i class="fas fa-check-circle" style="color:var(--success)"></i>
+                        </div>
+                        <small style="color:var(--gray-500);font-weight:600;">Oluşturulma: ${new Date(p.id).toLocaleDateString()}</small>
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--gray-700);margin:0.25rem 0;">📚 ${p.lessonCount} Planlanmış Ders</div>
+                        <div style="display:flex;gap:0.4rem;margin-top:auto;">
+                            <button class="btn-outline" onclick="viewArchivedDetail(${p.id})" style="padding:0.3rem 0.6rem;font-size:0.75rem;flex:1;"><i class="fas fa-edit"></i> İncele / Düzenle</button>
+                            <button class="btn-danger" onclick="deleteHistoryItem(${p.id})" style="padding:0.3rem 0.6rem;font-size:0.75rem;"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`; 
+        });
+        document.getElementById("historyContainer").innerHTML = html + "</div>";
+    }
+
+    function deleteHistoryItem(id) {
+        customConfirm("Programı Sil", "Bu program arşivi kalıcı olarak silinecektir. Onaylıyor musunuz?", () => {
+            programHistory = programHistory.filter(x => x.id !== id);
+            saveData(); renderHistory(); renderCompareList(); showToast("Arşivden silindi", "success");
+        }, "danger");
+    }
+
+    function viewArchivedDetail(id) {
+        let prog = programHistory.find(p => p.id === id); if(!prog) return;
+
+        let container = document.getElementById("programDetailContent");
+        let tQ=0, tC=0, tW=0, tB=0, tT=0;
+        prog.timetable.forEach(d => d && d.forEach(l => {
+            if(l && l.name) {
+                tQ += parseInt(l.questionCount)||0; tC += parseInt(l.correctCount)||0;
+                tW += parseInt(l.wrongCount)||0; tB += parseInt(l.blankCount)||0; tT += parseInt(l.targetQuestion)||0;
+            }
+        }));
+
+        let acc = tQ > 0 ? Math.round((tC / tQ) * 100) : 0;
+
+        let html = `
+            <div style="background:var(--gray-50); padding:1rem; border-radius:var(--border-radius); border:1px solid var(--gray-200); display:flex; flex-wrap:wrap; gap:1.5rem; margin-bottom:0.5rem;">
+                <div><span style="font-size:0.7rem; color:var(--gray-500); display:block; font-weight:700; text-transform:uppercase;">Arşiv İsmi</span><strong style="font-size:1rem;">${escapeHtml(prog.name)}</strong></div>
+                <div><span style="font-size:0.7rem; color:var(--gray-500); display:block; font-weight:700; text-transform:uppercase;">Doğru Oranı</span><strong style="font-size:1rem; color:var(--primary);">%${acc}</strong></div>
+                <div><span style="font-size:0.7rem; color:var(--gray-500); display:block; font-weight:700; text-transform:uppercase;">Hedef</span><strong style="font-size:1rem;">🎯 ${tT}</strong></div>
+                <div><span style="font-size:0.7rem; color:var(--gray-500); display:block; font-weight:700; text-transform:uppercase;">Çözülen</span><strong style="font-size:1rem;">📝 ${tQ}</strong></div>
+                <div><span style="font-size:0.7rem; color:var(--gray-500); display:block; font-weight:700; text-transform:uppercase;">Doğru</span><strong style="font-size:1rem; color:var(--success)">✔️ ${tC}</strong></div>
+                <div><span style="font-size:0.7rem; color:var(--gray-500); display:block; font-weight:700; text-transform:uppercase;">Yanlış</span><strong style="font-size:1rem; color:var(--danger)">❌ ${tW}</strong></div>
+            </div>
+            <p style="font-size:0.75rem; color:var(--gray-500); font-weight:600;"><i class="fas fa-info-circle"></i> Düzenlemek veya ders eklemek istediğiniz hücreye tıklayabilirsiniz. Değişiklikler arşive anında kaydedilir.</p>
+            
+            <div class="timetable-wrapper" style="max-height:55vh;">
+                <div class="timetable-grid" id="archiveGridDetail" style="min-width:900px;">
+                    <div class="grid-header-corner"><i class="fas fa-clock"></i></div>`;
+        
+        DAYS.forEach(day => { html += `<div class="grid-day-header">${day}</div>`; });
+        
+        let slots = prog.timeSlots || TIME_SLOTS;
+        container.innerHTML = html + `</div></div>`;
+        
+        const gridEl = container.querySelector("#archiveGridDetail");
+        
+        for(let h=0; h<slots.length; h++) {
+            gridEl.appendChild(Object.assign(document.createElement("div"), {className: "grid-time-cell", innerHTML: slots[h]}));
+            for(let d=0; d<DAYS.length; d++) {
+                const slot = document.createElement("div"); slot.className = "grid-lesson-slot";
+                let lesson = prog.timetable[d] ? prog.timetable[d][h] : null;
+                if(lesson && lesson.name) {
+                    slot.innerHTML = `
+                        <div class="lesson-item" style="border-left-color:${lesson.color}; min-height:65px;">
+                            <strong style="font-size:0.75rem;">${escapeHtml(lesson.name)}</strong>
+                            <span style="font-size:0.6rem; color:var(--gray-500);">${escapeHtml(lesson.topic)}</span>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.3rem; font-size:0.6rem; font-weight:800; margin-top:auto;">
+                                <span title="Hedef">🎯${lesson.targetQuestion||0}</span>
+                                <span style="color:var(--success)" title="Doğru">✔️${lesson.correctCount||0}</span>
+                                <span style="color:var(--danger)" title="Yanlış">❌${lesson.wrongCount||0}</span>
+                            </div>
+                        </div>`;
+                } else {
+                    slot.innerHTML = `<span style="color:var(--gray-300); font-size:0.65rem;">+ Ders Ekle</span>`;
+                }
+                
+                slot.addEventListener("click", () => {
+                    currentArchiveEditId = prog.id; 
+                    openModal(d, h, lesson);
+                });
+                gridEl.appendChild(slot);
+            }
+        }
+        document.getElementById("programDetailModal").style.display = "flex";
+    }
+
+    function renderCompareList() {
+        let sortedHistory = [...programHistory].sort((a,b) => a.id - b.id);
+        
+        let h = ""; sortedHistory.forEach(p => { 
+            h += `<label style="background:white; padding:0.5rem; border-radius:var(--border-radius-sm); display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.8rem; font-weight:600; box-shadow:var(--shadow-xs);">
+                    <input type="checkbox" class="compare-checkbox" data-id="${p.id}"> ${escapeHtml(p.name)} <small style="color:var(--gray-400); margin-left:auto;">${new Date(p.id).toLocaleDateString()}</small>
+                  </label>`; 
+        });
+        document.getElementById("compareProgramsList").innerHTML = h || "<p style='color:var(--gray-500); text-align:center;'>Karşılaştırmak için arşive program ekleyin.</p>";
+    }
+
+    function runAIAnalysis() {
+        const ids = Array.from(document.querySelectorAll(".compare-checkbox:checked")).map(cb => parseInt(cb.dataset.id));
+        if(ids.length < 2) return showToast("Gelişimi görebilmek için en az 2 program seçmelisin.", "error");
+
+        document.getElementById("analyticsTabBtn").click();
+        
+        // 1. Programları eski -> yeni şeklinde sıralıyoruz.
+        const progs = programHistory.filter(p => ids.includes(p.id)).sort((a, b) => a.id - b.id);
+        
+        // --- UX İyileştirmesi: GÖRSEL ZAMAN ÇİZELGESİ (TIMELINE) OLUŞTURMA ---
+        let timelineHTML = `<div class="timeline-container">`;
+        progs.forEach((p, index) => {
+            let extraClass = index === 0 ? "first" : (index === progs.length - 1 ? "last" : "");
+            timelineHTML += `
+                <div class="timeline-node ${extraClass}">
+                    <div class="timeline-node-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+                    <div class="timeline-node-date">${new Date(p.id).toLocaleDateString()}</div>
+                </div>
+            `;
+            if (index < progs.length - 1) {
+                timelineHTML += `<i class="fas fa-arrow-right timeline-arrow"></i>`;
+            }
+        });
+        timelineHTML += `</div>`;
+        // ----------------------------------------------------------------------
+
+        let topicData = {}; 
+        let globalTimeline = []; 
+
+        progs.forEach((p) => {
+            let pData = { id: p.id, name: p.name, totalQ: 0, totalC: 0, totalW: 0, totalB: 0, accuracy: 0 };
+            let localTopics = {};
+
+            p.timetable.forEach(day => day && day.forEach(l => {
+                if(l && l.name) {
+                    let q = parseInt(l.questionCount)||0;
+                    if (q > 0) { 
+                        let dName = l.name.trim();
+                        let kName = l.topic ? l.topic.trim() : "Genel Başlık";
+                        let key = `${dName} - ${kName}`;
+                        
+                        let c = parseInt(l.correctCount)||0;
+                        let w = parseInt(l.wrongCount)||0;
+                        let b = parseInt(l.blankCount)||0;
+
+                        pData.totalQ += q; pData.totalC += c; pData.totalW += w; pData.totalB += b;
+
+                        if(!localTopics[key]) {
+                            localTopics[key] = { q: 0, c: 0, w: 0, b: 0 };
+                        }
+                        localTopics[key].q += q;
+                        localTopics[key].c += c;
+                        localTopics[key].w += w;
+                        localTopics[key].b += b;
+                    }
+                }
+            }));
+            
+            pData.accuracy = pData.totalQ > 0 ? (pData.totalC / pData.totalQ) * 100 : 0;
+            globalTimeline.push(pData);
+
+            for (let key in localTopics) {
+                if(!topicData[key]) {
+                    let parts = key.split(" - ");
+                    topicData[key] = { subject: parts[0], topic: parts[1], history: [], totalQ: 0, totalC: 0, totalW: 0, totalB: 0 };
+                }
+                let t = localTopics[key];
+                let acc = (t.c / t.q) * 100;
+                
+                // Konunun tarihçesini (hangi programda yüzde kaç) kaydediyoruz.
+                topicData[key].history.push({ progId: p.id, progName: p.name, q: t.q, c: t.c, acc: acc });
+                topicData[key].totalQ += t.q;
+                topicData[key].totalC += t.c;
+                topicData[key].totalW += t.w;
+                topicData[key].totalB += t.b;
+            }
+        });
+
+        // 3. İvme ve İstikrar Hesaplamaları
+        let analyzedTopics = Object.values(topicData).map(t => {
+            t.avgAcc = t.totalQ > 0 ? (t.totalC / t.totalQ) * 100 : 0;
+            t.delta = 0;
+            t.isTrending = false; 
+            
+            if (t.history.length > 1) {
+                let firstRecord = t.history[0];
+                let lastRecord = t.history[t.history.length - 1];
+                t.delta = lastRecord.acc - firstRecord.acc;
+                t.isTrending = true;
+            }
+            return t;
+        });
+
+        // 4. Profesyonel Kategorizasyon
+        let risingTopics = analyzedTopics.filter(t => t.isTrending && t.delta >= 2).sort((a,b) => b.delta - a.delta);
+        let fallingTopics = analyzedTopics.filter(t => t.isTrending && t.delta <= -2).sort((a,b) => a.delta - b.delta);
+        
+        // YENİ ÖZELLİK: İstikrarlı (Sabit) Konular (Dalgalanma 2%'den az ve Başarı %50'den büyük)
+        let stableTopics = analyzedTopics.filter(t => t.isTrending && Math.abs(t.delta) < 2 && t.avgAcc >= 50).sort((a,b) => b.avgAcc - a.avgAcc);
+        
+        let weakTopics = analyzedTopics.filter(t => t.avgAcc < 50 && t.totalQ >= 10).sort((a,b) => a.avgAcc - b.avgAcc);
+
+        let firstGlobal = globalTimeline[0];
+        let lastGlobal = globalTimeline[globalTimeline.length - 1];
+        let globalDelta = lastGlobal.accuracy - firstGlobal.accuracy;
+
+        // UI Oluşturma
+        let aiHTML = `
+            <div class="ai-insights-box">
+                <div class="ai-header" style="flex-wrap:wrap;"><i class="fas fa-robot"></i> <h2>Kişiselleştirilmiş Detaylı Gelişim Raporu</h2></div>
+                
+                <p style="text-align:center; font-size:0.75rem; color:var(--gray-500); font-weight:700; text-transform:uppercase; margin-bottom:0.5rem; letter-spacing:0.5px;">Seçilen Karşılaştırma Senaryosu</p>
+                ${timelineHTML}
+
+                <div class="insight-card ${globalDelta > 0 ? 'success' : (globalDelta < 0 ? 'warning' : 'info')}">
+                    <div class="insight-title"><i class="fas fa-chart-line"></i> Genel İlerleme Durumu</div>
+                    <div class="insight-desc">
+                        Seçilen süreç boyunca genel doğru yanıt verme oranınız 
+                        <b>%${firstGlobal.accuracy.toFixed(1)}</b> seviyesinden <b>%${lastGlobal.accuracy.toFixed(1)}</b> seviyesine ulaştı.
+                        <br><span class="metric-badge ${globalDelta > 0 ? 'metric-up' : (globalDelta < 0 ? 'metric-down' : 'metric-neutral')}">
+                        ${globalDelta > 0 ? `▲ %${globalDelta.toFixed(1)} Genel Performans Artışı` : (globalDelta < 0 ? `▼ %${Math.abs(globalDelta).toFixed(1)} Genel Performans Düşüşü` : `➖ Performans Sabit`)}</span>
+                    </div>
+                </div>
+
+                <div class="insight-card success">
+                    <div class="insight-title" style="color:var(--success)"><i class="fas fa-arrow-trend-up"></i> Yükseliş İvmesi Yakalayan Konular</div>
+                    <div class="insight-desc">
+                        Doğru yanıt oranınızı en belirgin şekilde artırdığınız alt konular:
+                        <ul class="ai-ranked-list">
+                            ${risingTopics.length > 0 ? risingTopics.slice(0,3).map(t => `
+                                <li class="ai-ranked-item"><span><b>${escapeHtml(t.subject)}</b> - ${escapeHtml(t.topic)}</span><span style="color:var(--success); font-weight:800;">+ %${t.delta.toFixed(1)}</span></li>
+                            `).join('') : '<li class="ai-ranked-item" style="color:var(--gray-500)">Trend hesaplanabilecek yeterli yükseliş verisi bulunamadı.</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card stable">
+                    <div class="insight-title" style="color:#8b5cf6"><i class="fas fa-shield-alt"></i> İstikrarı Korunan Konular</div>
+                    <div class="insight-desc">
+                        Programlar arası başarı oranınızı koruduğunuz ve sağlam temele oturmuş iyi durumdaki konular:
+                        <ul class="ai-ranked-list">
+                            ${stableTopics.length > 0 ? stableTopics.slice(0,3).map(t => `
+                                <li class="ai-ranked-item"><span><b>${escapeHtml(t.subject)}</b> - ${escapeHtml(t.topic)}</span><span style="color:#8b5cf6; font-weight:800;">Ort: %${t.avgAcc.toFixed(1)}</span></li>
+                            `).join('') : '<li class="ai-ranked-item" style="color:var(--gray-500)">İstikrarlı seyreden yüksek başarılı konu bulunamadı.</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card warning">
+                    <div class="insight-title" style="color:var(--warning)"><i class="fas fa-arrow-trend-down"></i> Geriye Giden (Düşüşteki) Konular</div>
+                    <div class="insight-desc">
+                        Daha önce iyi yaptığınız ancak zaman içinde başarı oranınızın düştüğü konular:
+                        <ul class="ai-ranked-list">
+                            ${fallingTopics.length > 0 ? fallingTopics.slice(0,3).map(t => `
+                                <li class="ai-ranked-item"><span><b>${escapeHtml(t.subject)}</b> - ${escapeHtml(t.topic)}</span><span style="color:var(--danger); font-weight:800;">- %${Math.abs(t.delta).toFixed(1)}</span></li>
+                            `).join('') : '<li class="ai-ranked-item" style="color:var(--success)">Harika! Hiçbir konuda gerileme trendi yok.</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card danger">
+                    <div class="insight-title" style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> Kronik Zayıf Konular (Acil Müdahale)</div>
+                    <div class="insight-desc">
+                        Seçili süreç boyunca ortalama başarı oranınızın <b>%50'nin altında</b> kaldığı, öncelikli çalışılması gereken konular:
+                        <ul class="ai-ranked-list">
+                            ${weakTopics.length > 0 ? weakTopics.slice(0,3).map(t => `
+                                <li class="ai-ranked-item"><span><b>${escapeHtml(t.subject)}</b> - ${escapeHtml(t.topic)}</span><span style="color:var(--danger); font-weight:800;">Ort. Başarı: %${t.avgAcc.toFixed(1)}</span></li>
+                            `).join('') : '<li class="ai-ranked-item" style="color:var(--success)">Tebrikler! Belirgin bir kronik zayıf konunuz bulunmuyor.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("aiFeedbackArea").innerHTML = aiHTML;
+        document.getElementById("chartsArea").style.display = "grid";
+
+        // Tablo Oluşturma (İlerleme Kronolojisi Sütunu Eklendi)
+        let topicHtml = `
+            <table class="analysis-table">
+                <thead>
+                    <tr>
+                        <th>Ders / Konu Başlığı</th>
+                        <th>İlerleme Kronolojisi (Başarı Yüzdesi)</th>
+                        <th style="color: var(--success)">Total D.</th>
+                        <th style="color: var(--danger)">Total Y.</th>
+                        <th>Ortalama</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        analyzedTopics.sort((a,b) => b.totalQ - a.totalQ).forEach(t => {
+            // YENİ ÖZELLİK: Başarı Kronolojisi Çipleri
+            let chronologyHtml = `<div class="chronology-wrapper">`;
+            t.history.forEach((h, index) => {
+                chronologyHtml += `<span class="chronology-step" title="Program: ${escapeHtml(h.progName)} \nDoğru: ${h.c}/${h.q}">%${h.acc.toFixed(0)}</span>`;
+                if(index < t.history.length - 1) chronologyHtml += `<i class="fas fa-angle-right" style="color:var(--gray-400); font-size:0.6rem;"></i>`;
+            });
+            chronologyHtml += `</div>`;
+
+            topicHtml += `
+                <tr>
+                    <td><b>${escapeHtml(t.subject)}</b><br><span style="color:var(--gray-500); font-size:0.75rem;">${escapeHtml(t.topic)}</span></td>
+                    <td>${chronologyHtml}</td>
+                    <td style="font-weight:700; color:var(--success)">${t.totalC}</td>
+                    <td style="font-weight:700; color:var(--danger)">${t.totalW}</td>
+                    <td style="font-weight:800; color:var(--primary)">%${t.avgAcc.toFixed(0)}</td>
+                </tr>
+            `;
+        });
+        topicHtml += `</tbody></table>`;
+        document.getElementById("topicAnalysisContainer").innerHTML = topicHtml;
+        
+        showToast("Gelişmiş Yapay Zeka Analizi ve Zaman Çizelgesi Hazırlandı!", "success");
+    }
+</script>
+</body>
+</html>
