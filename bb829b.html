@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haftalık Diyet ve Beslenme Programı (IndexedDB)</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #27ae60;
+            --accent-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-color: #333333;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .clear-btn {
+            background-color: #fff;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* 7 Günlük Izgara (Grid) Yapısı */
+        .planner-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(280px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            padding-bottom: 15px;
+        }
+
+        /* Gün Sütunu */
+        .day-column {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+            min-height: 400px;
+            transition: transform 0.2s;
+        }
+
+        .day-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            border-top-left-radius: 9px;
+            border-top-right-radius: 9px;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .day-content {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        /* Dinamik Kutu (Öğün/Girdi) */
+        .item-box {
+            background-color: #f1f5f9;
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 6px;
+            padding: 10px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Metin Alanı: Otomatik genişler, dışa taşmaz */
+        .item-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            resize: none;
+            font-size: 0.95rem;
+            color: #2d3748;
+            outline: none;
+            line-height: 1.4;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+        .item-input::placeholder {
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        /* Silme Butonu */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #cbd5e0;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            line-height: 1;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: var(--accent-color);
+            background-color: #e2e8f0;
+        }
+
+        /* Ekleme Butonu */
+        .add-btn {
+            margin: 10px 12px 12px 12px;
+            padding: 8px 12px;
+            background-color: #edf2f7;
+            color: #4a5568;
+            border: 1px dashed #cbd5e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .add-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        /* Kaydırma Çubuğu Özelleştirme */
+        .planner-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+        .planner-grid::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        .planner-grid::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        .planner-grid::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Haftalık Diyet ve Beslenme Programı</h1>
+        <p class="subtitle">Verileriniz otomatik olarak tarayıcınızın IndexedDB hafızasında saklanır.</p>
+        <div class="actions">
+            <button class="clear-btn" onclick="clearAllData()">Tüm Programı Temizle</button>
+        </div>
+    </header>
+
+    <main class="planner-grid">
+        <div class="day-column" id="day-pzt">
+            <div class="day-header">Pazartesi</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-pzt')">+ Bölme Ekle</button>
+        </div>
+
+        <div class="day-column" id="day-sali">
+            <div class="day-header">Salı</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-sali')">+ Bölme Ekle</button>
+        </div>
+
+        <div class="day-column" id="day-car">
+            <div class="day-header">Çarşamba</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-car')">+ Bölme Ekle</button>
+        </div>
+
+        <div class="day-column" id="day-per">
+            <div class="day-header">Perşembe</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-per')">+ Bölme Ekle</button>
+        </div>
+
+        <div class="day-column" id="day-cum">
+            <div class="day-header">Cuma</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-cum')">+ Bölme Ekle</button>
+        </div>
+
+        <div class="day-column" id="day-cmt">
+            <div class="day-header">Cumartesi</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-cmt')">+ Bölme Ekle</button>
+        </div>
+
+        <div class="day-column" id="day-pzr">
+            <div class="day-header">Pazar</div>
+            <div class="day-content"></div>
+            <button class="add-btn" onclick="addBox('day-pzr')">+ Bölme Ekle</button>
+        </div>
+    </main>
+
+    <script>
+        const DB_NAME = 'DietPlannerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'diet_items';
+        const DAYS = ['day-pzt', 'day-sali', 'day-car', 'day-per', 'day-cum', 'day-cmt', 'day-pzr'];
+
+        let db = null;
+
+        // IndexedDB Başlatma
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (e) => {
+                    db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+
+                request.onerror = (e) => {
+                    console.error('IndexedDB Hatası:', e.target.error);
+                    reject(e.target.error);
+                };
+            });
+        }
+
+        // Veriyi IndexedDB'ye Kaydet veya Güncelle
+        function saveItemToDB(item) {
+            if (!db) return;
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.put(item);
+        }
+
+        // Veriyi IndexedDB'den Sil
+        function deleteItemFromDB(id) {
+            if (!db) return;
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.delete(id);
+        }
+
+        // Tüm Verileri Yükle
+        function loadItemsFromDB() {
+            return new Promise((resolve) => {
+                if (!db) return resolve([]);
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.getAll();
+
+                request.onsuccess = () => {
+                    resolve(request.result || []);
+                };
+            });
+        }
+
+        // Sayfa Açıldığında Yapılacak İşlemler
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            const savedItems = await loadItemsFromDB();
+
+            if (savedItems.length > 0) {
+                // Kayıtlı verileri ekrana yükle
+                savedItems.forEach(item => {
+                    renderBox(item.dayId, item.id, item.text);
+                });
+            } else {
+                // İlk defa açılıyorsa varsayılan taslağı oluştur
+                DAYS.forEach(dayId => {
+                    addBox(dayId, "Kahvaltı: ");
+                    addBox(dayId, "Akşam: ");
+                });
+            }
+        });
+
+        // Yeni Bölme/Kutucuk Ekleme (DB Kaydı ile)
+        function addBox(dayId, initialText = "") {
+            const id = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const item = { id, dayId, text: initialText };
+            
+            saveItemToDB(item);
+            renderBox(dayId, id, initialText, true);
+        }
+
+        // Arayüze Kutucuk Çizme
+        function renderBox(dayId, id, text, shouldFocus = false) {
+            const dayColumn = document.getElementById(dayId);
+            if (!dayColumn) return;
+
+            const contentArea = dayColumn.querySelector('.day-content');
+
+            const box = document.createElement('div');
+            box.className = 'item-box';
+            box.dataset.id = id;
+
+            const textarea = document.createElement('textarea');
+            textarea.className = 'item-input';
+            textarea.rows = 1;
+            textarea.placeholder = "Öğün veya besin yazınız...";
+            textarea.value = text;
+
+            // Metin değiştikçe IndexedDB'ye anlık kaydet
+            textarea.addEventListener('input', function () {
+                adjustHeight(this);
+                saveItemToDB({
+                    id: id,
+                    dayId: dayId,
+                    text: this.value
+                });
+            });
+
+            // Silme Butonu
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.title = "Kutuyu Sil";
+            deleteBtn.onclick = function () {
+                deleteItemFromDB(id);
+                box.remove();
+            };
+
+            box.appendChild(textarea);
+            box.appendChild(deleteBtn);
+            contentArea.appendChild(box);
+
+            // Yükseklik ayarı ve odaklanma
+            setTimeout(() => adjustHeight(textarea), 0);
+            if (shouldFocus && !text) {
+                textarea.focus();
+            }
+        }
+
+        // Otomatik Yükseklik Esnetme
+        function adjustHeight(element) {
+            element.style.height = 'auto';
+            element.style.height = element.scrollHeight + 'px';
+        }
+
+        // Tüm Verileri Temizleme Fonksiyonu
+        function clearAllData() {
+            if (confirm("Tüm diyet programınız silinecektir. Emin misiniz?")) {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.clear().onsuccess = () => {
+                    location.reload();
+                };
+            }
+        }
+    </script>
+</body>
+</html>
